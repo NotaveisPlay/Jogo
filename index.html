@@ -1,0 +1,937 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
+  <title>Notáveis Play - Feira de Matemática</title>
+  
+  <script src="http://localhost:3000/socket.io/socket.io.js"></script>
+
+  <style>
+    :root {
+      --surface: #ffffff; --surface-2: #f8fbff; --text: #0f172a; --muted: #64748b; --line: #e2e8f0;
+      --shadow: 0 10px 30px rgba(15, 23, 42, 0.08); --radius-xl: 28px; --radius-lg: 22px;
+      --seduc-blue: #0b63ce; --seduc-blue-2: #2c7be5; --seduc-yellow: #f7c948; --seduc-yellow-2: #ffd76a;
+      --green: #16a34a; --red: #dc2626; --fontScale: 1; --motion: 1; --letterSpace: 0; --lineHeight: 1.5;
+    }
+
+    * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
+    html, body { margin: 0; min-height: 100%; }
+    body {
+      font-family: Arial, Helvetica, sans-serif;
+      background: radial-gradient(circle at top left, rgba(11,99,206,.12), transparent 30%),
+                  radial-gradient(circle at top right, rgba(247,201,72,.18), transparent 25%),
+                  linear-gradient(180deg, #ffffff, #f8fbff 55%, #f8fafc 100%);
+      color: var(--text); font-size: calc(16px * var(--fontScale)); line-height: var(--lineHeight);
+      letter-spacing: var(--letterSpace); overflow-x: hidden;
+    }
+
+    body.high-contrast { --surface: #000; --surface-2: #111; --text: #fff; --muted: #fff; --line: #fff; --shadow: none; background: #000; }
+    body.dyslexia-friendly { font-family: Verdana, Tahoma, sans-serif; --letterSpace: .03em; --lineHeight: 1.75; }
+    @media (prefers-reduced-motion: reduce) { :root { --motion: 0; } }
+
+    .app { width: 100%; max-width: 480px; margin: 0 auto; min-height: 100vh; position: relative; }
+    .screen { min-height: 100vh; display: none; flex-direction: column; padding: 18px 16px 26px; animation: fadeIn calc(.28s * var(--motion)) ease; }
+    .screen.active { display: flex; }
+    @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
+
+    .card { background: var(--surface); border: 1px solid var(--line); border-radius: var(--radius-xl); box-shadow: var(--shadow); }
+    .topbar { display: flex; align-items: center; justify-content: space-between; gap: 10px; margin-bottom: 14px; }
+    .brand { display: flex; align-items: center; gap: 10px; font-weight: 900; color: var(--seduc-blue); }
+    .brand-badge { width: 44px; height: 44px; border-radius: 16px; background: linear-gradient(135deg, var(--seduc-blue), var(--seduc-blue-2)); color: #fff; display: grid; place-items: center; font-weight: 900; box-shadow: 0 10px 20px rgba(11,99,206,.22); }
+    
+    .icon-btn, .btn { border: none; cursor: pointer; font-weight: 800; transition: transform calc(.18s * var(--motion)) ease, opacity .2s ease; }
+    .icon-btn:active, .btn:active { transform: scale(.98); }
+    .icon-btn { width: 44px; height: 44px; border-radius: 14px; background: #fff; border: 1px solid var(--line); color: var(--text); box-shadow: var(--shadow); }
+
+    .hero { padding: 24px 20px; background: radial-gradient(circle at top right, rgba(247,201,72,.28), transparent 32%), linear-gradient(145deg, #ffffff, #f5faff); position: relative; overflow: hidden; margin-bottom: 14px; border-radius: var(--radius-xl); border: 1px solid var(--line); }
+    .hero h1 { margin: 0 0 8px; font-size: 2rem; line-height: 1.05; }
+    .hero p { margin: 0; color: var(--muted); }
+
+    .btn { width: 100%; border-radius: 18px; padding: 16px 18px; font-size: 1rem; color: #fff; background: linear-gradient(135deg, var(--seduc-blue), var(--seduc-blue-2)); box-shadow: 0 12px 24px rgba(11,99,206,.25); }
+    .btn.secondary { background: linear-gradient(135deg, #f8fbff, #eef5ff); color: var(--seduc-blue); border: 1px solid rgba(11,99,206,.14); box-shadow: none; }
+    .btn.yellow { background: linear-gradient(135deg, var(--seduc-yellow), var(--seduc-yellow-2)); color: #3b2d00; box-shadow: 0 12px 24px rgba(247,201,72,.30); }
+    .btn.green { background: linear-gradient(135deg, #22c55e, #16a34a); }
+    .btn.disabled { opacity: 0.5; cursor: not-allowed; pointer-events: none; }
+    .btn.red { background: var(--red); color: white; }
+
+    .stack { display: grid; gap: 12px; }
+    .stack-lg { display: grid; gap: 16px; }
+
+    .section-card { padding: 16px; border-radius: var(--radius-lg); background: var(--surface); border: 1px solid var(--line); box-shadow: var(--shadow); }
+    .section-title { font-size: 1rem; font-weight: 900; margin: 0 0 12px; }
+    .muted { color: var(--muted); }
+    .small-note { font-size: .88rem; color: var(--muted); }
+
+    .input, .select { width: 100%; border-radius: 16px; border: 1px solid var(--line); background: #fff; padding: 15px 14px; color: var(--text); font-size: 1rem; outline: none; }
+    .input:focus, .select:focus { border-color: var(--seduc-blue); box-shadow: 0 0 0 4px rgba(11,99,206,.12); }
+
+    .player-card { padding: 16px; display: flex; align-items: center; gap: 14px; margin-bottom: 14px;}
+    .player-avatar { width: 72px; height: 72px; border-radius: 24px; background: linear-gradient(135deg, var(--seduc-blue), var(--seduc-blue-2)); display: grid; place-items: center; flex-shrink: 0; overflow: hidden; border: 1px solid rgba(255,255,255,.35); }
+    .player-avatar img { width: 100%; height: 100%; object-fit: cover; display: block; background: #fff; }
+    .level-badge { display: inline-flex; align-items: center; gap: 8px; padding: 8px 12px; border-radius: 999px; background: rgba(247,201,72,.22); color: #6a4e00; font-weight: 900; font-size: .9rem; }
+
+    .stats-grid, .families-grid, .access-grid { display: grid; gap: 12px; }
+    .stats-grid { grid-template-columns: repeat(2, 1fr); }
+    .families-grid, .access-grid { grid-template-columns: repeat(2, 1fr); }
+    .stat-card { border-radius: 22px; border: 1px solid var(--line); background: var(--surface); box-shadow: var(--shadow); padding: 14px; text-align: center; }
+    .stat-card strong { display: block; font-size: 1.4rem; margin-bottom: 4px; }
+
+    .progress-wrap { margin-top: 12px; padding: 12px; border-radius: 18px; background: linear-gradient(145deg, #ffffff, #f8fbff); border: 1px solid var(--line); }
+    .progress-bar { height: 14px; border-radius: 999px; background: #edf2f7; overflow: hidden; border: 1px solid var(--line); margin-top: 8px; }
+    .progress-bar span { display: block; height: 100%; width: 0%; border-radius: 999px; background: linear-gradient(90deg, var(--seduc-blue), var(--seduc-yellow)); transition: width .3s ease; }
+
+    .character-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 10px; }
+    .character-card { border: 2px solid transparent; border-radius: 22px; background: linear-gradient(145deg, #ffffff, #f4f7fb); box-shadow: var(--shadow); cursor: pointer; padding: 8px; text-align: center; }
+    .character-card.selected { border-color: var(--seduc-blue); transform: scale(1.02); }
+    .character-card img { width: 100%; aspect-ratio: 1 / 1; object-fit: contain; border-radius: 16px; background: #f8fbff; border: 1px solid var(--line); }
+    .character-card span { display: block; margin-top: 6px; font-size: .72rem; font-weight: 800; }
+
+    /* Estilos Solo/Treino */
+    .game-shell { display: grid; gap: 12px; padding-bottom: 92px; }
+    .game-header { padding: 16px; display: flex; align-items: center; justify-content: space-between; gap: 12px; }
+    .pill { display: inline-flex; align-items: center; gap: 6px; padding: 8px 10px; border-radius: 999px; background: #f8fbff; border: 1px solid var(--line); color: var(--seduc-blue); font-weight: 800; font-size: .86rem; }
+    .equation-card { padding: 18px; background: radial-gradient(circle at top right, rgba(247,201,72,.18), transparent 30%), linear-gradient(145deg, #ffffff, #f9fbff); }
+    .equation-meta { color: var(--muted); font-weight: 800; margin-bottom: 10px; font-size: .92rem; }
+    .equation-text { font-size: 1.55rem; line-height: 1.25; font-weight: 900; letter-spacing: -.02em; margin-bottom: 14px; word-break: break-word; }
+    .message { min-height: 24px; font-weight: 800; font-size: .95rem; }
+    .message.ok { color: var(--green); } .message.error { color: var(--red); } .message.info { color: var(--seduc-blue); }
+    .action-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+    .toolbar-row { display: grid; grid-template-columns: repeat(4, 1fr); gap: 8px; }
+    .small-btn { border: 1px solid var(--line); background: #fff; border-radius: 14px; padding: 12px 8px; font-size: .85rem; font-weight: 800; color: var(--text); cursor: pointer; }
+    .hint-box, .solution-box, .teacher-box { padding: 14px; border-radius: 18px; border: 1px solid var(--line); background: #fff; box-shadow: var(--shadow); margin-top: 10px;}
+
+    /* Estilos Multiplayer / Kahoot */
+    .lobby-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; }
+    .lobby-player { display: flex; flex-direction: column; align-items: center; text-align: center; padding: 10px; background: #f8fbff; border: 1px solid var(--line); border-radius: 16px; }
+    .lobby-player img { width: 50px; height: 50px; border-radius: 12px; margin-bottom: 8px; }
+    .lobby-player.pronto { border-color: var(--green); background: #f0fdf4; }
+    
+    .quiz-option { width: 100%; padding: 18px; font-size: 1.1rem; font-weight: 800; text-align: left; border-radius: 16px; border: 2px solid var(--line); background: #fff; cursor: pointer; transition: all 0.2s; display: flex; align-items: center; gap: 12px; }
+    .quiz-option:active { transform: scale(0.98); }
+    .quiz-option span.letter { display: inline-flex; align-items: center; justify-content: center; width: 30px; height: 30px; border-radius: 8px; background: var(--line); color: var(--text); }
+    .quiz-option.selected { border-color: var(--seduc-blue); background: #f0f6ff; }
+    .quiz-option.correct { border-color: var(--green); background: #dcfce7; color: #166534; }
+    .quiz-option.wrong { border-color: var(--red); background: #fee2e2; color: #991b1b; }
+
+    .timer-bar { width: 100%; height: 12px; background: var(--line); border-radius: 6px; overflow: hidden; margin: 10px 0; }
+    .timer-fill { height: 100%; background: var(--green); width: 100%; transition: width 1s linear, background-color 0.3s; }
+    .timer-fill.warning { background: var(--seduc-yellow); }
+    .timer-fill.danger { background: var(--red); }
+
+    .podium-card { display: flex; align-items: center; gap: 14px; padding: 16px; border-radius: 20px; border: 2px solid var(--line); background: #fff; margin-bottom: 10px; }
+    .podium-card.first { border-color: #fbbf24; background: #fffbeb; }
+    .podium-card.second { border-color: #94a3b8; background: #f8fafc; }
+    .podium-card.third { border-color: #b45309; background: #fff7ed; }
+    .podium-rank { font-size: 1.5rem; font-weight: 900; width: 30px; text-align: center; }
+
+    .bottom-nav { position: fixed; left: 50%; bottom: 10px; transform: translateX(-50%); width: min(448px, calc(100% - 18px)); background: rgba(255,255,255,.92); backdrop-filter: blur(12px); border: 1px solid rgba(226,232,240,.9); border-radius: 26px; box-shadow: 0 18px 40px rgba(15,23,42,.12); padding: 8px; display: none; grid-template-columns: repeat(4, 1fr); gap: 8px; z-index: 50; }
+    .bottom-nav.show { display: grid; }
+    .nav-btn { border: none; background: transparent; border-radius: 18px; padding: 10px 6px; font-size: .78rem; font-weight: 800; color: var(--muted); display: grid; gap: 4px; justify-items: center; cursor: pointer; }
+    .nav-btn.active { background: linear-gradient(145deg, #eef6ff, #fff8df); color: var(--seduc-blue); }
+    
+    .history-item { padding: 12px; border-radius: 16px; border: 1px solid var(--line); background: #fff; }
+    .sr-only { position: absolute; width: 1px; height: 1px; padding: 0; margin: -1px; overflow: hidden; clip: rect(0, 0, 0, 0); border: 0; white-space: nowrap; }
+    .hidden { display: none !important; }
+
+    @media (max-width: 380px) { .equation-text { font-size: 1.35rem; } .toolbar-row { grid-template-columns: repeat(2, 1fr); } .families-grid, .access-grid { grid-template-columns: 1fr 1fr; } .character-grid { grid-template-columns: repeat(3, 1fr); } }
+  </style>
+</head>
+<body>
+  <div class="app">
+    <div id="srAnnouncer" class="sr-only" aria-live="assertive"></div>
+
+    <section id="screenLogin" class="screen active" aria-label="Tela de Login">
+      <div class="topbar">
+        <div class="brand"><div class="brand-badge">N</div><div>Notáveis Play</div></div>
+      </div>
+      <div class="hero">
+        <h1>Bem-vindo!</h1>
+        <p>Faça login ou crie sua conta para jogar.</p>
+      </div>
+      <div class="section-card">
+        <input id="loginName" class="input" type="text" placeholder="Seu apelido" style="margin-bottom: 12px;" />
+        <input id="loginPassword" class="input" type="password" placeholder="Sua senha" />
+      </div>
+      <div class="stack-lg" style="margin-top: 16px;">
+        <button class="btn" id="btnDoLogin">Entrar na Conta</button>
+        <button class="btn secondary" id="btnGoToRegister">Criar Novo Personagem</button>
+      </div>
+    </section>
+
+    <section id="screenProfile" class="screen" aria-label="Criação de personagem">
+      <div class="topbar">
+        <div class="brand"><div class="brand-badge">N</div><div>Nova Conta</div></div>
+      </div>
+      <div class="section-card">
+        <h2 class="section-title">Escolha o personagem</h2>
+        <div class="character-grid" id="characterGrid"></div>
+      </div>
+      <div class="section-card">
+        <h2 class="section-title">Seus Dados</h2>
+        <input id="playerName" class="input" type="text" maxlength="18" placeholder="Crie um apelido (Ex: Neto)" style="margin-bottom: 12px;" />
+        <input id="playerPassword" class="input" type="password" placeholder="Crie uma senha simples" />
+      </div>
+      <div class="stack-lg" style="margin-top: 16px;">
+        <button class="btn" id="btnCreateProfile">Criar Conta</button>
+        <button class="btn secondary" id="btnGoToLogin">Já tenho conta (Voltar)</button>
+      </div>
+    </section>
+
+    <section id="screenHome" class="screen" aria-label="Lobby do jogador">
+      <div class="topbar">
+        <div class="brand"><div class="brand-badge">N</div><div><div>Lobby</div><small class="muted">Escolha o modo</small></div></div>
+        <button class="icon-btn" id="btnOpenSettings" aria-label="Abrir ajustes">⚙️</button>
+      </div>
+      <div class="player-card card">
+        <div class="player-avatar" id="homeAvatar"><img id="homeAvatarImg" src="assets/personagens/einstein/base.png" alt="Avatar do jogador" /></div>
+        <div style="flex:1; min-width:0;">
+          <strong id="homeName" style="display:block; font-size:1.1rem;">Jogador</strong>
+          <div class="muted">Seu personagem está pronto</div>
+          <div class="level-badge" style="margin-top:10px;">⭐ Nível <span id="homeLevel">1</span></div>
+        </div>
+      </div>
+
+      <div class="section-card" style="margin-top:16px;">
+        <h2 class="section-title">Multiplayer (Salas)</h2>
+        <button class="btn yellow" id="btnCriarSala" style="margin-bottom: 10px;">🎮 Criar Nova Sala</button>
+        <div style="display: flex; gap: 10px;">
+          <input type="text" id="inputPinSala" class="input" placeholder="Digite o PIN da Sala" style="flex: 1;" maxlength="4" />
+          <button class="btn green" id="btnEntrarSala" style="width: auto;">Entrar</button>
+        </div>
+      </div>
+
+      <div class="section-card" style="margin-top:16px;">
+        <h2 class="section-title">Treino Solo</h2>
+        <button class="btn secondary" id="btnStartGame">Modo Infinito</button>
+      </div>
+    </section>
+
+    <section id="screenGame" class="screen" aria-label="Tela do jogo solo">
+      <div class="game-shell">
+        <div class="game-header card">
+          <button class="icon-btn nav-back" data-target="screenHome" aria-label="Voltar">←</button>
+          <div style="flex:1; min-width:0;">
+            <strong id="gamePlayerName">Jogador</strong>
+            <div class="muted">Modo Treino</div>
+          </div>
+          <div class="pill">⏱️ <span id="gameTimer">00:00</span></div>
+        </div>
+        
+        <div class="equation-card card">
+          <div class="equation-meta" id="equationMeta">Aguardando questão...</div>
+          <div class="equation-text" id="equationText">Toque em começar para gerar.</div>
+          <input id="answerInput" class="input" type="text" placeholder="Digite sua resposta" autocomplete="off" />
+          <div class="message info" id="feedback" style="margin-top:12px;">Pronto para jogar.</div>
+        </div>
+        
+        <div class="action-grid">
+          <button class="btn green" id="btnCheck">Conferir</button>
+          <button class="btn yellow" id="btnNew">Nova questão</button>
+        </div>
+        
+        <div class="toolbar-row">
+          <button class="small-btn" id="btnHint">Dica</button>
+          <button class="small-btn" id="btnSolution">Solução</button>
+          <button class="small-btn" id="btnSpeak">Ler</button>
+          <button class="small-btn" id="btnSkip">Pular</button>
+        </div>
+        
+        <div id="hintBox" class="hint-box hidden"></div>
+        <div id="solutionBox" class="solution-box hidden"></div>
+        
+        <div class="stats-grid" style="margin-top: 10px;">
+          <div class="stat-card"><strong id="gameScore">0</strong>Pontos</div>
+          <div class="stat-card"><strong id="gameStreak">0</strong>Sequência</div>
+        </div>
+        
+        <div class="teacher-box" id="teacherPanel" style="margin-top: 10px;">Explicação didática.</div>
+      </div>
+    </section>
+
+    <section id="screenEspera" class="screen">
+      <div class="topbar">
+        <button class="icon-btn" id="btnSairSala">←</button>
+        <div class="brand" id="esperaPinTexto" style="font-size: 1.2rem; color: var(--text);">PIN: ----</div>
+      </div>
+      <div class="hero" style="text-align: center;">
+        <h1 id="esperaStatus">Aguardando jogadores...</h1>
+        <p>A partida começará quando todos estiverem prontos.</p>
+      </div>
+      <div class="section-card">
+        <h2 class="section-title">Jogadores na Sala</h2>
+        <div id="listaJogadores" class="lobby-grid"></div>
+      </div>
+      <div class="stack-lg" style="margin-top:auto;">
+        <button class="btn green" id="btnEstouPronto">ESTOU PRONTO!</button>
+      </div>
+    </section>
+
+    <section id="screenQuizAoVivo" class="screen">
+      <div class="topbar">
+        <div class="brand" id="quizQuestaoNumero">Questão 1/5</div>
+        <div style="font-weight: 900; color: var(--seduc-blue); font-size: 1.2rem;" id="quizTempoTexto">2:30</div>
+      </div>
+      <div class="timer-bar"><div class="timer-fill" id="quizTempoBarra"></div></div>
+      <div class="hero" style="margin-top: 10px;">
+        <h2 id="quizPergunta" style="margin: 0; font-size: 1.3rem;">Carregando pergunta...</h2>
+      </div>
+      <div class="stack" id="quizOpcoesBox" style="margin-top: 10px;"></div>
+      <div id="quizFeedback" class="section-card hidden" style="text-align: center; margin-top: 15px;">
+        <h2 id="quizFeedbackTexto" style="margin:0;">Aguardando os outros...</h2>
+      </div>
+    </section>
+
+    <section id="screenPodio" class="screen">
+      <div class="hero" style="text-align: center; background: linear-gradient(145deg, #fffbeb, #fef3c7);">
+        <h1>🏆 Fim de Jogo!</h1>
+        <p>Confira a classificação final da partida.</p>
+      </div>
+      <div id="podioLista" class="stack" style="margin-top: 20px;"></div>
+      <div class="stack-lg" style="margin-top: 30px;">
+        <button class="btn" id="btnVoltarLobbyPodio">Voltar ao Início</button>
+      </div>
+    </section>
+
+    <section id="screenProfileView" class="screen">
+      <div class="topbar">
+        <button class="icon-btn nav-back" data-target="screenHome">←</button>
+        <div class="brand"><div class="brand-badge">N</div><div>Perfil</div></div>
+      </div>
+      <div class="player-card card">
+        <div class="player-avatar"><img id="profileAvatarImg" src="assets/personagens/einstein/base.png" /></div>
+        <div>
+          <strong id="profileName">Jogador</strong>
+          <div class="level-badge" style="margin-top:8px;">🏆 Recorde <span id="profileBest">0</span></div>
+        </div>
+      </div>
+      <div class="stats-grid" style="margin-top:14px;">
+        <div class="stat-card"><strong id="profileXp">0</strong>XP</div>
+        <div class="stat-card"><strong id="profileLevel">1</strong>Nível</div>
+      </div>
+    </section>
+
+    <section id="screenHistory" class="screen">
+      <div class="topbar">
+        <button class="icon-btn nav-back" data-target="screenHome">←</button>
+        <div class="brand"><div class="brand-badge">N</div><div>Histórico (Solo)</div></div>
+      </div>
+      <div class="section-card">
+        <h2 class="section-title">Últimas respostas</h2>
+        <div id="historyList" class="stack">Nenhuma questão respondida ainda.</div>
+      </div>
+    </section>
+
+    <section id="screenSettings" class="screen">
+      <div class="topbar">
+        <button class="icon-btn nav-back" data-target="screenHome">←</button>
+        <div class="brand"><div class="brand-badge">N</div><div>Ajustes</div></div>
+      </div>
+      <div class="section-card">
+        <h2 class="section-title">Sair da Conta</h2>
+        <button class="btn red" id="btnLogout" style="background: var(--red);">Deslogar / Trocar de Conta</button>
+      </div>
+    </section>
+
+    <nav id="bottomNav" class="bottom-nav">
+      <button class="nav-btn active" data-target="screenHome">🏠<span>Lobby</span></button>
+      <button class="nav-btn" data-target="screenProfileView">👤<span>Perfil</span></button>
+      <button class="nav-btn" data-target="screenHistory">🕘<span>Histórico</span></button>
+      <button class="nav-btn" data-target="screenSettings">⚙️<span>Ajustes</span></button>
+    </nav>
+  </div>
+
+  <script>
+    (() => {
+      const API = "http://localhost:3000";
+      let socket = null;
+
+      // ================== FUNÇÕES DE CONEXÃO COM BANCO ==================
+      async function registerUser(username, password, personagem) {
+        try {
+          const res = await fetch(API + "/register", {
+            method: "POST", headers: {"Content-Type": "application/json"},
+            body: JSON.stringify({ username, password, personagem })
+          });
+          return await res.json();
+        } catch (error) { return { success: false, message: "Erro no servidor." }; }
+      }
+
+      async function loginUser(username, password) {
+        try {
+          const res = await fetch(API + "/login", {
+            method: "POST", headers: {"Content-Type": "application/json"},
+            body: JSON.stringify({ username, password })
+          });
+          return await res.json();
+        } catch (error) { return { success: false, message: "Erro no servidor." }; }
+      }
+
+      async function salvarPontos(username, pontos) {
+        try {
+          await fetch(API + "/updateScore", {
+            method: "POST", headers: {"Content-Type": "application/json"},
+            body: JSON.stringify({ username, pontos })
+          });
+        } catch (error) {}
+      }
+
+      // ================== ESTADO GERAL DO JOGO ==================
+      const $ = (id) => document.getElementById(id);
+      const $$ = (sel) => [...document.querySelectorAll(sel)];
+
+      const characters = [
+        { id: "einstein", name: "Einstein" }, { id: "neymar", name: "Neymar" },
+        { id: "messi", name: "Messi" }, { id: "cr7", name: "CR7" },
+        { id: "tesla", name: "Tesla" }, { id: "taylor", name: "Taylor" },
+        { id: "eilish", name: "Eilish" }, { id: "anitta", name: "Anitta" },
+        { id: "braga", name: "Braga" }, { id: "pericles", name: "Péricles" },
+        { id: "alok", name: "Alok" }, { id: "sandler", name: "Sandler" },
+        { id: "will", name: "Will" }, { id: "luthor", name: "Luthor" },
+        { id: "mitski", name: "Mitski" }
+      ];
+
+      const families = [];
+      const ASSET_ROOT = "assets/personagens";
+      const FALLBACK_IMAGE = ASSET_ROOT + "/einstein/base.png";
+
+      const state = {
+        player: { name: "", characterId: "einstein", imagePath: FALLBACK_IMAGE },
+        currentScreen: "screenLogin",
+        voiceEnabled: true, allowTimer: true, timerSeconds: 0, timerInterval: null, current: null,
+        score: 0, bestScore: 0, correct: 0, wrong: 0, streak: 0, bestStreak: 0, xp: 0, level: 1, totalRounds: 0,
+        history: [], mpRespondido: false, codigoSalaAtual: null
+      };
+
+      function getCharacterImagePath(id) {
+        const c = characters.find(x => x.id === id);
+        return c ? `${ASSET_ROOT}/${id}/base.png` : FALLBACK_IMAGE;
+      }
+
+      // ================== NAVEGAÇÃO E UI BÁSICA ==================
+      function showScreen(id, fromNav = false) {
+        $$(".screen").forEach(s => s.classList.remove("active"));
+        const el = $(id);
+        if (el) el.classList.add("active");
+        state.currentScreen = id;
+        const showNav = ["screenHome", "screenProfileView", "screenHistory", "screenSettings"].includes(id);
+        const nav = $("bottomNav");
+        if (nav) nav.classList.toggle("show", showNav);
+        if (showNav) $$(".nav-btn").forEach(btn => btn.classList.toggle("active", btn.dataset.target === id));
+      }
+
+      function updateProfileViews() {
+        if($("homeName")) $("homeName").textContent = state.player.name;
+        if($("gamePlayerName")) $("gamePlayerName").textContent = state.player.name;
+        if($("profileName")) $("profileName").textContent = state.player.name;
+        
+        const path = getCharacterImagePath(state.player.characterId);
+        if($("homeAvatarImg")) $("homeAvatarImg").src = path;
+        if($("profileAvatarImg")) $("profileAvatarImg").src = path;
+      }
+
+      function renderCharacterGrid() {
+        const grid = $("characterGrid");
+        if (!grid) return;
+        grid.innerHTML = characters.map(c => `
+          <div class="character-card ${c.id === state.player.characterId ? 'selected' : ''}" data-id="${c.id}">
+            <img src="${getCharacterImagePath(c.id)}" onerror="this.src='${FALLBACK_IMAGE}'">
+            <span>${c.name}</span>
+          </div>
+        `).join("");
+
+        $$(".character-card").forEach(card => {
+          card.addEventListener("click", () => {
+            state.player.characterId = card.dataset.id;
+            renderCharacterGrid();
+          });
+        });
+      }
+
+      function checkAutoLogin() {
+        const savedUser = localStorage.getItem("notaveis_user");
+        const savedChar = localStorage.getItem("notaveis_char");
+        if (savedUser && savedChar) {
+          state.player.name = savedUser;
+          state.player.characterId = savedChar;
+          state.player.imagePath = getCharacterImagePath(savedChar);
+          updateProfileViews();
+          showScreen("screenHome");
+        } else {
+          showScreen("screenLogin");
+        }
+      }
+
+      function renderHistory() {
+        if(!$("historyList")) return;
+        $("historyList").innerHTML = state.history.length ? state.history.map(h => `
+          <div class="history-item">
+            <strong>${h.status}</strong>
+            <div style="margin-top:6px;">${h.prompt}</div>
+            <div class="muted" style="margin-top:6px;">Resposta: ${h.answer}</div>
+          </div>
+        `).join("") : "Nenhuma questão respondida ainda.";
+      }
+
+      function addHistory(status, prompt, answer) {
+        state.history.unshift({ status, prompt, answer });
+        state.history = state.history.slice(0, 20);
+        renderHistory();
+      }
+
+      function updateStats() {
+        state.level = Math.floor(state.xp / 100) + 1;
+        if($("homeLevel")) $("homeLevel").textContent = state.level;
+        if($("gameScore")) $("gameScore").textContent = state.score;
+        if($("gameStreak")) $("gameStreak").textContent = state.streak;
+        if($("profileBest")) $("profileBest").textContent = state.bestScore;
+        if($("profileXp")) $("profileXp").textContent = state.xp;
+        if($("profileLevel")) $("profileLevel").textContent = state.level;
+        if($("xpText")) $("xpText").textContent = (state.xp % 100) + " / 100 XP";
+        if($("xpBar")) $("xpBar").style.width = (state.xp % 100) + "%";
+      }
+
+      function speak(text) {
+        if (!state.voiceEnabled || !("speechSynthesis" in window)) return;
+        window.speechSynthesis.cancel();
+        const u = new SpeechSynthesisUtterance(text);
+        u.lang = "pt-BR"; u.rate = .95;
+        window.speechSynthesis.speak(u);
+      }
+
+      function formatTime(seconds) {
+        const m = String(Math.floor(seconds / 60)).padStart(2, "0");
+        const s = String(seconds % 60).padStart(2, "0");
+        return m + ":" + s;
+      }
+
+      function startTimer() {
+        if (!state.allowTimer || state.timerInterval) return;
+        state.timerInterval = setInterval(() => {
+          state.timerSeconds++;
+          if($("gameTimer")) $("gameTimer").textContent = formatTime(state.timerSeconds);
+        }, 1000);
+      }
+
+      // ================== MOTOR MATEMÁTICO (SOLO) ==================
+      function randInt(min, max) { return Math.floor(Math.random() * (max - min + 1)) + min; }
+      function choice(arr) { return arr[randInt(0, arr.length - 1)]; }
+      function maybe(p = 0.5) { return Math.random() < p; }
+      function sup(str) { return str.replace(/\^2/g, "²"); }
+
+      function tokenize(expr) {
+        const cleaned = expr.toLowerCase().replace(/\s+/g, "").replace(/²/g, "^2").replace(/−/g, "-").replace(/\*/g, "")
+          .replace(/([a-z])(\d)/g, "$1*$2").replace(/(\d)([a-z])/g, "$1*$2").replace(/([a-z])([a-z])/g, "$1*$2");
+        const out = []; let i = 0;
+        while (i < cleaned.length) {
+          const ch = cleaned[i];
+          if ("+-()^*".includes(ch)) { out.push(ch); i++; continue; }
+          if (/\d/.test(ch)) {
+            let n = ch; i++;
+            while (i < cleaned.length && /\d/.test(cleaned[i])) n += cleaned[i++];
+            out.push(n); continue;
+          }
+          if (/[a-z]/.test(ch)) { out.push(ch); i++; continue; }
+          i++;
+        }
+        return out;
+      }
+
+      function addPolys(a, b, factor = 1) {
+        const r = { ...a };
+        for (const k in b) r[k] = (r[k] || 0) + factor * b[k];
+        Object.keys(r).forEach(k => { if (r[k] === 0) delete r[k]; });
+        return r;
+      }
+
+      function multiplyPolys(a, b) {
+        const result = {};
+        for (const k1 in a) {
+          for (const k2 in b) {
+            const c = a[k1] * b[k2];
+            const map = {};
+            (k1 + "," + k2).split(",").filter(Boolean).forEach(part => {
+              const [v,p] = part.split("^"); map[v] = (map[v] || 0) + Number(p);
+            });
+            const key = Object.entries(map).filter(([,p]) => p !== 0).sort((x,y) => x[0].localeCompare(y[0])).map(([v,p]) => v + "^" + p).join(",");
+            result[key] = (result[key] || 0) + c;
+          }
+        }
+        return result;
+      }
+
+      function parsePolynomial(expr) {
+        const tokens = tokenize(expr); let i = 0;
+        function parseExpression() {
+          let left = parseTerm();
+          while (i < tokens.length && (tokens[i] === "+" || tokens[i] === "-")) {
+            const op = tokens[i++]; left = addPolys(left, parseTerm(), op === "+" ? 1 : -1);
+          }
+          return left;
+        }
+        function parseTerm() {
+          let left = parseFactor();
+          while (i < tokens.length && tokens[i] === "*") { i++; left = multiplyPolys(left, parseFactor()); }
+          return left;
+        }
+        function parseFactor() {
+          if (tokens[i] === "+") { i++; return parseFactor(); }
+          if (tokens[i] === "-") { i++; const f = parseFactor(); return Object.fromEntries(Object.entries(f).map(([k,v]) => [k, -v])); }
+          let base;
+          if (tokens[i] === "(") { i++; base = parseExpression(); if (tokens[i] === ")") i++; }
+          else if (/^\d+$/.test(tokens[i] || "")) { base = { "": Number(tokens[i++]) }; }
+          else if (/^[a-z]$/.test(tokens[i] || "")) { const v = tokens[i++]; base = { [v + "^1"]: 1 }; }
+          else { base = { "": 0 }; }
+          if (tokens[i] === "^") {
+            i++; const exp = Number(tokens[i++] || 1); let result = { "": 1 };
+            for (let k = 0; k < exp; k++) result = multiplyPolys(result, base);
+            return result;
+          }
+          return base;
+        }
+        return parseExpression();
+      }
+
+      function canonical(poly) {
+        return Object.entries(poly).filter(([,v]) => v !== 0).sort((a,b) => {
+          const degA = a[0].split(",").reduce((s,p) => s + (p ? Number(p.split("^")[1]) : 0), 0);
+          const degB = b[0].split(",").reduce((s,p) => s + (p ? Number(p.split("^")[1]) : 0), 0);
+          if (degB !== degA) return degB - degA;
+          return a[0].localeCompare(b[0]);
+        }).map(([k,v]) => v + "|" + k).join(";") || "0";
+      }
+
+      function equivalent(a, b) {
+        try { return canonical(parsePolynomial(a)) === canonical(parsePolynomial(b)); }
+        catch { return false; }
+      }
+
+      function answerIsCorrect(input, expected) {
+        if (/^\d+$/.test(expected.trim())) return input.trim() === expected.trim();
+        return equivalent(input, expected);
+      }
+
+      function buildFamilies() {
+        families.push({
+          family: "quadradoSomaSimples", label: "Quadrado da soma",
+          generator: () => {
+            const n = randInt(1, 9);
+            return { prompt: sup(`(x + ${n})^2`), answer: `x^2 + ${2*n}x + ${n*n}`, hint: "Primeiro ao quadrado, dobro do produto...", solution: sup(`x^2 + ${2*n}x + ${n*n}`) };
+          }
+        });
+        families.push({
+          family: "quadradoDiferencaSimples", label: "Quadrado da diferença",
+          generator: () => {
+            const n = randInt(1, 9);
+            return { prompt: sup(`(x - ${n})^2`), answer: `x^2 - ${2*n}x + ${n*n}`, hint: "Muda o sinal do termo do meio.", solution: sup(`x^2 - ${2*n}x + ${n*n}`) };
+          }
+        });
+        families.push({
+          family: "somaPelaDiferenca", label: "Soma pela diferença",
+          generator: () => {
+            const n = randInt(1, 10);
+            return { prompt: sup(`(x + ${n})(x - ${n})`), answer: `x^2 - ${n*n}`, hint: "Os termos do meio se cancelam.", solution: sup(`x^2 - ${n*n}`) };
+          }
+        });
+      }
+
+      function newQuestionSolo() {
+        if (families.length === 0) buildFamilies();
+        const q = choice(families).generator();
+        state.current = q;
+        state.totalRounds++;
+        
+        if($("equationMeta")) $("equationMeta").textContent = "Treino Infinito • Rodada " + state.totalRounds;
+        if($("equationText")) $("equationText").textContent = q.prompt;
+        if($("answerInput")) $("answerInput").value = "";
+        if($("feedback")) {
+          $("feedback").className = "message info";
+          $("feedback").textContent = "Pensa no padrão e responde.";
+        }
+        if($("hintBox")) {
+          $("hintBox").classList.add("hidden");
+          $("hintBox").textContent = "Dica: " + q.hint;
+        }
+        if($("solutionBox")) {
+          $("solutionBox").classList.add("hidden");
+          $("solutionBox").textContent = "Solução: " + q.solution;
+        }
+        if($("teacherPanel")) $("teacherPanel").textContent = "Resolva os produtos notáveis para ganhar XP e subir de nível.";
+        
+        if (state.voiceEnabled) speak("Nova questão: " + q.prompt);
+        if($("answerInput")) $("answerInput").focus();
+      }
+
+      function checkAnswerSolo() {
+        if (!state.current) return;
+        const input = $("answerInput").value.trim();
+        if (!input) {
+          if($("feedback")) {
+            $("feedback").className = "message error";
+            $("feedback").textContent = "Digite uma resposta primeiro.";
+          }
+          return;
+        }
+        const ok = answerIsCorrect(input, state.current.answer);
+        if (ok) {
+          state.correct++; state.streak++;
+          state.bestStreak = Math.max(state.bestStreak, state.streak);
+          state.score += 10 + state.streak * 2;
+          state.bestScore = Math.max(state.bestScore, state.score);
+          state.xp += 15;
+          if($("feedback")) {
+            $("feedback").className = "message ok";
+            $("feedback").textContent = "Boa! Resposta correta: " + state.current.answer;
+          }
+          addHistory("✅ Correta", state.current.prompt, input);
+          speak("Resposta correta");
+          salvarPontos(state.player.name, 10);
+        } else {
+          state.wrong++; state.streak = 0;
+          state.score = Math.max(0, state.score - 3);
+          state.xp += 4;
+          if($("feedback")) {
+            $("feedback").className = "message error";
+            $("feedback").textContent = "Quase. Correta: " + state.current.answer;
+          }
+          addHistory("❌ Incorreta", state.current.prompt, input);
+          speak("Resposta incorreta");
+        }
+        updateStats();
+      }
+
+      // ================== MODO MULTIPLAYER (SOCKET.IO) ==================
+      function conectarSocket() {
+        if (!socket) {
+          socket = io(API);
+          
+          socket.on("sala_entrou", (pin) => {
+            state.codigoSalaAtual = pin;
+            if($("esperaPinTexto")) $("esperaPinTexto").textContent = `PIN: ${pin}`;
+            if($("btnEstouPronto")) {
+              $("btnEstouPronto").classList.remove("disabled");
+              $("btnEstouPronto").textContent = "ESTOU PRONTO!";
+            }
+            showScreen("screenEspera");
+          });
+
+          socket.on("erro_sala", (msg) => {
+            alert(msg);
+            showScreen("screenHome");
+          });
+
+          socket.on("atualizar_lobby", (jogadores) => {
+            if($("listaJogadores")) {
+              $("listaJogadores").innerHTML = jogadores.map(j => `
+                <div class="lobby-player ${j.pronto ? 'pronto' : ''}">
+                  <img src="${getCharacterImagePath(j.personagem)}">
+                  <strong>${j.username}</strong>
+                  <small>${j.pronto ? 'Pronto ✅' : 'Aguardando...'}</small>
+                </div>
+              `).join("");
+            }
+          });
+
+          socket.on("nova_questao", (dados) => {
+            state.mpRespondido = false;
+            if($("quizFeedback")) $("quizFeedback").classList.add("hidden");
+            if($("quizQuestaoNumero")) $("quizQuestaoNumero").textContent = `Questão ${dados.numero}/5`;
+            if($("quizPergunta")) $("quizPergunta").textContent = dados.pergunta;
+            
+            const letras = ['A', 'B', 'C', 'D', 'E'];
+            if($("quizOpcoesBox")) {
+              $("quizOpcoesBox").innerHTML = dados.opcoes.map((op, i) => `
+                <button class="quiz-option" onclick="enviarRespostaMP(${i}, this)">
+                  <span class="letter">${letras[i]}</span>
+                  <span style="flex:1">${op}</span>
+                </button>
+              `).join("");
+            }
+            showScreen("screenQuizAoVivo");
+          });
+
+          socket.on("tempo_atualizado", (tempoRestante) => {
+            const minutos = Math.floor(tempoRestante / 60);
+            const segundos = tempoRestante % 60;
+            if($("quizTempoTexto")) $("quizTempoTexto").textContent = `${minutos}:${segundos.toString().padStart(2, '0')}`;
+            
+            const pct = (tempoRestante / 150) * 100;
+            if($("quizTempoBarra")) {
+              $("quizTempoBarra").style.width = `${pct}%`;
+              if(pct < 30) $("quizTempoBarra").className = "timer-fill danger";
+              else if(pct < 60) $("quizTempoBarra").className = "timer-fill warning";
+              else $("quizTempoBarra").className = "timer-fill";
+            }
+          });
+
+          socket.on("fim_tempo", (dados) => {
+            const btnCerto = $$(".quiz-option")[dados.correta];
+            if(btnCerto) btnCerto.classList.add("correct");
+            $$(".quiz-option").forEach(b => b.classList.add("disabled"));
+            if($("quizFeedback")) {
+              $("quizFeedback").classList.remove("hidden");
+              $("quizFeedbackTexto").textContent = "Tempo Esgotado! Próxima questão...";
+            }
+          });
+
+          socket.on("mostrar_podio", (ranking) => {
+            const classes = ["first", "second", "third"];
+            const medalhas = ["🥇", "🥈", "🥉"];
+            if($("podioLista")) {
+              $("podioLista").innerHTML = ranking.slice(0, 3).map((j, i) => `
+                <div class="podium-card ${classes[i] || ''}">
+                  <div class="podium-rank">${medalhas[i] || (i+1+'º')}</div>
+                  <img src="${getCharacterImagePath(j.personagem)}" style="width:50px; border-radius:12px;">
+                  <div style="flex:1">
+                    <strong style="display:block; font-size:1.1rem">${j.username}</strong>
+                    <span class="muted">${j.pontos} pontos</span>
+                  </div>
+                </div>
+              `).join("");
+            }
+            showScreen("screenPodio");
+            state.codigoSalaAtual = null; // Limpa a sala depois do pódio
+          });
+        }
+      }
+
+      window.enviarRespostaMP = function(indice, btnElement) {
+        if(state.mpRespondido) return;
+        state.mpRespondido = true;
+        $$(".quiz-option").forEach(b => b.classList.add("disabled"));
+        btnElement.classList.add("selected");
+        if($("quizFeedback")) {
+          $("quizFeedback").classList.remove("hidden");
+          $("quizFeedbackTexto").textContent = "Resposta enviada! Aguardando outros jogadores...";
+        }
+        socket.emit("enviar_resposta", indice);
+      }
+
+      // ================== HELPER PARA ADICIONAR EVENTOS COM SEGURANÇA ==================
+      function addEvt(id, ev, fn) {
+        const el = $(id);
+        if(el) el.addEventListener(ev, fn);
+      }
+
+      // ================== INSTALAÇÃO DOS EVENTOS ==================
+      function installEvents() {
+        // Telas de Login/Cadastro
+        addEvt("btnGoToRegister", "click", () => {
+          renderCharacterGrid();
+          showScreen("screenProfile");
+        });
+        addEvt("btnGoToLogin", "click", () => showScreen("screenLogin"));
+
+        addEvt("btnDoLogin", "click", async () => {
+          const u = $("loginName").value.trim(), p = $("loginPassword").value.trim();
+          if(!u || !p) return alert("Preencha tudo!");
+          const res = await loginUser(u, p);
+          if(res && res.success) {
+            localStorage.setItem("notaveis_user", u);
+            localStorage.setItem("notaveis_char", res.user.personagem);
+            checkAutoLogin();
+          } else alert(res ? res.message : "Erro de conexão.");
+        });
+
+        addEvt("btnCreateProfile", "click", async () => {
+          const u = $("playerName").value.trim(), p = $("playerPassword").value.trim(), c = state.player.characterId;
+          if(!u || !p) return alert("Preencha tudo!");
+          const res = await registerUser(u, p, c);
+          if(res && res.success) {
+            localStorage.setItem("notaveis_user", u);
+            localStorage.setItem("notaveis_char", c);
+            checkAutoLogin();
+          } else alert(res ? res.message : "Erro de conexão.");
+        });
+
+        // Logout
+        const fazerLogout = () => {
+          if(confirm("Deseja sair da conta?")) {
+            localStorage.clear();
+            if(socket) socket.disconnect();
+            location.reload();
+          }
+        };
+        addEvt("btnLogout", "click", fazerLogout);
+
+        // ================== EVENTOS DO MODO SOLO ==================
+        addEvt("btnStartGame", "click", () => {
+          showScreen("screenGame");
+          startTimer();
+          newQuestionSolo();
+        });
+
+        addEvt("btnNew", "click", () => newQuestionSolo());
+        addEvt("btnCheck", "click", checkAnswerSolo);
+        
+        const ansInput = $("answerInput");
+        if(ansInput) {
+          ansInput.addEventListener("keydown", (e) => { if (e.key === "Enter") checkAnswerSolo(); });
+        }
+        
+        addEvt("btnHint", "click", () => { if(state.current && $("hintBox")) $("hintBox").classList.remove("hidden"); });
+        addEvt("btnSolution", "click", () => { if(state.current && $("solutionBox")) $("solutionBox").classList.remove("hidden"); });
+        addEvt("btnSpeak", "click", () => { if(state.current) speak(state.current.prompt); });
+        
+        addEvt("btnSkip", "click", () => {
+          if (!state.current) return;
+          state.wrong++; state.streak = 0;
+          addHistory("⏭️ Pulada", state.current.prompt, "Questão pulada");
+          updateStats();
+          newQuestionSolo();
+        });
+
+        addEvt("btnOpenSettings", "click", () => showScreen("screenSettings"));
+
+        // ================== EVENTOS DO MODO MULTIPLAYER (SISTEMA DE SALAS) ==================
+        addEvt("btnCriarSala", "click", () => {
+          conectarSocket();
+          socket.emit("criar_sala", { username: state.player.name, personagem: state.player.characterId });
+        });
+
+        addEvt("btnEntrarSala", "click", () => {
+          const pin = $("inputPinSala").value.trim();
+          if(!pin) return alert("Digite o PIN da Sala!");
+          conectarSocket();
+          socket.emit("entrar_sala", { pin: pin, username: state.player.name, personagem: state.player.characterId });
+        });
+
+        addEvt("btnSairSala", "click", () => {
+          if(socket) {
+            socket.emit("sair_sala");
+            socket.disconnect();
+          }
+          socket = null;
+          state.codigoSalaAtual = null;
+          showScreen("screenHome");
+        });
+
+        addEvt("btnEstouPronto", "click", () => {
+          socket.emit("marcar_pronto");
+          if($("btnEstouPronto")) {
+            $("btnEstouPronto").classList.add("disabled");
+            $("btnEstouPronto").textContent = "Aguardando outros...";
+          }
+        });
+
+        addEvt("btnVoltarLobbyPodio", "click", () => showScreen("screenHome"));
+
+        // Navegação Padrão
+        $$(".nav-back").forEach(btn => btn.addEventListener("click", () => showScreen(btn.dataset.target)));
+        $$(".nav-btn").forEach(btn => btn.addEventListener("click", () => showScreen(btn.dataset.target, true)));
+      }
+
+      // ================== INICIALIZAÇÃO ==================
+      function boot() {
+        renderCharacterGrid(); 
+        buildFamilies();
+        installEvents(); 
+        checkAutoLogin();
+        renderHistory();
+      }
+
+      boot();
+    })();
+  </script>
+</body>
+</html>
