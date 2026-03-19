@@ -57,8 +57,8 @@ app.post("/updateScore", (req, res) => {
 // SISTEMA DE SALAS MULTIPLAYER
 // ==========================================
 const questoes = [
-  { pergunta: "Desenvolva o produto notável: (x + 4)²", opcoes: ["x² + 16", "x² + 8x + 8", "x² + 8x + 16", "x² + 4x + 16", "x² + 8"], correta: 2 },
-  { pergunta: "Desenvolva o produto notável: (x - 7)²", opcoes: ["x² - 49", "x² - 14x + 49", "x² + 14x + 49", "x² - 14x - 49", "x² - 7x + 49"], correta: 1 },
+  { pergunta: "Resolva a expressão: (5 + 2)²", opcoes: ["29", "49", "27", "14", "20"], correta: 1 },
+  { pergunta: "Resolva a expressão: (12 - 3)²", opcoes: ["135", "18", "153", "81", "3"], correta: 3 },
   { pergunta: "Se x + 1/x = 5, então qual o valor de x² + 1/x² ?", opcoes: ["25", "27", "10", "23", "5"], correta: 3 },
   { pergunta: "A distância que o bip do sonar percorreu foi de (30-5)², representando a distância total (ida e volta). Determine a profundidade do oceano.", opcoes: ["625m", "600m", "300m", "312,5m", "325m"], correta: 3 },
   { pergunta: "O quadrado da soma do chute é: (8+2)². Vini Jr. diz que é 8² + 2². Qual o valor correto da expressão?", opcoes: ["68", "84", "100", "64", "72"], correta: 2 }
