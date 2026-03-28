@@ -14,181 +14,131 @@
       --seduc-blue: #0b63ce; --seduc-blue-2: #2c7be5; --seduc-yellow: #f7c948; --seduc-yellow-2: #ffd76a;
       --green: #16a34a; --red: #dc2626; --fontScale: 1; --motion: 1; --letterSpace: 0; --lineHeight: 1.5;
     }
-
     * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
     html, body { margin: 0; min-height: 100%; }
-    body {
-      font-family: Arial, Helvetica, sans-serif;
-      background: radial-gradient(circle at top left, rgba(11,99,206,.12), transparent 30%),
-                  radial-gradient(circle at top right, rgba(247,201,72,.18), transparent 25%),
-                  linear-gradient(180deg, #ffffff, #f8fbff 55%, #f8fafc 100%);
-      color: var(--text); font-size: calc(16px * var(--fontScale)); line-height: var(--lineHeight);
-      letter-spacing: var(--letterSpace); overflow-x: hidden;
-    }
-
-    body.high-contrast { --surface: #000; --surface-2: #111; --text: #fff; --muted: #fff; --line: #fff; --shadow: none; background: #000; }
-    body.dyslexia-friendly { font-family: Verdana, Tahoma, sans-serif; --letterSpace: .03em; --lineHeight: 1.75; }
-    @media (prefers-reduced-motion: reduce) { :root { --motion: 0; } }
-
+    body { font-family: Arial, Helvetica, sans-serif; background: radial-gradient(circle at top left, rgba(11,99,206,.12), transparent 30%), radial-gradient(circle at top right, rgba(247,201,72,.18), transparent 25%), linear-gradient(180deg, #ffffff, #f8fbff 55%, #f8fafc 100%); color: var(--text); font-size: calc(16px * var(--fontScale)); line-height: var(--lineHeight); letter-spacing: var(--letterSpace); overflow-x: hidden; }
     .app { width: 100%; max-width: 480px; margin: 0 auto; min-height: 100vh; position: relative; }
     .screen { min-height: 100vh; display: none; flex-direction: column; padding: 18px 16px 26px; animation: fadeIn calc(.28s * var(--motion)) ease; }
     .screen.active { display: flex; }
     @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
-
     .card { background: var(--surface); border: 1px solid var(--line); border-radius: var(--radius-xl); box-shadow: var(--shadow); }
     .topbar { display: flex; align-items: center; justify-content: space-between; gap: 10px; margin-bottom: 14px; }
     .brand { display: flex; align-items: center; gap: 10px; font-weight: 900; color: var(--seduc-blue); }
     .brand-badge { width: 44px; height: 44px; border-radius: 16px; background: linear-gradient(135deg, var(--seduc-blue), var(--seduc-blue-2)); color: #fff; display: grid; place-items: center; font-weight: 900; box-shadow: 0 10px 20px rgba(11,99,206,.22); }
-    
     .icon-btn, .btn { border: none; cursor: pointer; font-weight: 800; transition: transform calc(.18s * var(--motion)) ease, opacity .2s ease; }
     .icon-btn:active, .btn:active { transform: scale(.98); }
     .icon-btn { width: 44px; height: 44px; border-radius: 14px; background: #fff; border: 1px solid var(--line); color: var(--text); box-shadow: var(--shadow); }
-
     .hero { padding: 24px 20px; background: radial-gradient(circle at top right, rgba(247,201,72,.28), transparent 32%), linear-gradient(145deg, #ffffff, #f5faff); position: relative; overflow: hidden; margin-bottom: 14px; border-radius: var(--radius-xl); border: 1px solid var(--line); }
     .hero h1 { margin: 0 0 8px; font-size: 2rem; line-height: 1.05; }
     .hero p { margin: 0; color: var(--muted); }
-
     .btn { width: 100%; border-radius: 18px; padding: 16px 18px; font-size: 1rem; color: #fff; background: linear-gradient(135deg, var(--seduc-blue), var(--seduc-blue-2)); box-shadow: 0 12px 24px rgba(11,99,206,.25); }
     .btn.secondary { background: linear-gradient(135deg, #f8fbff, #eef5ff); color: var(--seduc-blue); border: 1px solid rgba(11,99,206,.14); box-shadow: none; }
     .btn.yellow { background: linear-gradient(135deg, var(--seduc-yellow), var(--seduc-yellow-2)); color: #3b2d00; box-shadow: 0 12px 24px rgba(247,201,72,.30); }
     .btn.green { background: linear-gradient(135deg, #22c55e, #16a34a); }
     .btn.disabled { opacity: 0.5; cursor: not-allowed; pointer-events: none; }
     .btn.red { background: var(--red); color: white; }
-
-    .stack { display: grid; gap: 12px; }
-    .stack-lg { display: grid; gap: 16px; }
-
+    .stack { display: grid; gap: 12px; } .stack-lg { display: grid; gap: 16px; }
     .section-card { padding: 16px; border-radius: var(--radius-lg); background: var(--surface); border: 1px solid var(--line); box-shadow: var(--shadow); }
     .section-title { font-size: 1rem; font-weight: 900; margin: 0 0 12px; }
     .muted { color: var(--muted); }
-
     .input, .select { width: 100%; border-radius: 16px; border: 1px solid var(--line); background: #fff; padding: 15px 14px; color: var(--text); font-size: 1rem; outline: none; }
     .input:focus, .select:focus { border-color: var(--seduc-blue); box-shadow: 0 0 0 4px rgba(11,99,206,.12); }
-
     .player-card { padding: 16px; display: flex; align-items: center; gap: 14px; margin-bottom: 14px;}
     .player-avatar { width: 72px; height: 72px; border-radius: 24px; background: linear-gradient(135deg, var(--seduc-blue), var(--seduc-blue-2)); display: grid; place-items: center; flex-shrink: 0; overflow: hidden; border: 1px solid rgba(255,255,255,.35); }
     .player-avatar img { width: 100%; height: 100%; object-fit: cover; display: block; background: #fff; }
     .level-badge { display: inline-flex; align-items: center; gap: 8px; padding: 8px 12px; border-radius: 999px; background: rgba(247,201,72,.22); color: #6a4e00; font-weight: 900; font-size: .9rem; }
-
     .stats-grid { display: grid; gap: 12px; grid-template-columns: repeat(2, 1fr); }
     .stat-card { border-radius: 22px; border: 1px solid var(--line); background: var(--surface); box-shadow: var(--shadow); padding: 14px; text-align: center; }
     .stat-card strong { display: block; font-size: 1.4rem; margin-bottom: 4px; }
-
-    .progress-wrap { margin-top: 12px; padding: 12px; border-radius: 18px; background: linear-gradient(145deg, #ffffff, #f8fbff); border: 1px solid var(--line); }
-    .progress-bar { height: 14px; border-radius: 999px; background: #edf2f7; overflow: hidden; border: 1px solid var(--line); margin-top: 8px; }
-    .progress-bar span { display: block; height: 100%; width: 0%; border-radius: 999px; background: linear-gradient(90deg, var(--seduc-blue), var(--seduc-yellow)); transition: width .3s ease; }
-
     .character-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 10px; }
     .character-card { border: 2px solid transparent; border-radius: 22px; background: linear-gradient(145deg, #ffffff, #f4f7fb); box-shadow: var(--shadow); cursor: pointer; padding: 8px; text-align: center; }
     .character-card.selected { border-color: var(--seduc-blue); transform: scale(1.02); }
     .character-card img { width: 100%; aspect-ratio: 1 / 1; object-fit: contain; border-radius: 16px; background: #f8fbff; border: 1px solid var(--line); }
     .character-card span { display: block; margin-top: 6px; font-size: .72rem; font-weight: 800; }
-
-    /* Estilos Genéricos de Quiz/Matemática */
+    
+    /* Estilos Solo */
     .game-shell { display: grid; gap: 12px; padding-bottom: 92px; }
     .game-header { padding: 16px; display: flex; align-items: center; justify-content: space-between; gap: 12px; }
     .pill { display: inline-flex; align-items: center; gap: 6px; padding: 8px 10px; border-radius: 999px; background: #f8fbff; border: 1px solid var(--line); color: var(--seduc-blue); font-weight: 800; font-size: .86rem; }
     .equation-card { padding: 18px; background: radial-gradient(circle at top right, rgba(247,201,72,.18), transparent 30%), linear-gradient(145deg, #ffffff, #f9fbff); }
     .equation-meta { color: var(--muted); font-weight: 800; margin-bottom: 10px; font-size: .92rem; }
-    .equation-text { font-size: 1.55rem; line-height: 1.25; font-weight: 900; letter-spacing: -.02em; margin-bottom: 14px; word-break: break-word; }
+    .equation-text { font-size: 1.55rem; line-height: 1.25; font-weight: 900; letter-spacing: -.02em; margin-bottom: 14px; word-break: break-word; text-align: center; }
     .message { min-height: 24px; font-weight: 800; font-size: .95rem; }
     .message.ok { color: var(--green); } .message.error { color: var(--red); } .message.info { color: var(--seduc-blue); }
     .action-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
     .toolbar-row { display: grid; grid-template-columns: repeat(4, 1fr); gap: 8px; }
     .small-btn { border: 1px solid var(--line); background: #fff; border-radius: 14px; padding: 12px 8px; font-size: .85rem; font-weight: 800; color: var(--text); cursor: pointer; }
     .hint-box, .solution-box { padding: 14px; border-radius: 18px; border: 1px solid var(--line); background: #fff; box-shadow: var(--shadow); margin-top: 10px;}
-
+    
     /* Multiplayer */
     .lobby-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; }
     .lobby-player { display: flex; flex-direction: column; align-items: center; text-align: center; padding: 10px; background: #f8fbff; border: 1px solid var(--line); border-radius: 16px; }
     .lobby-player img { width: 50px; height: 50px; border-radius: 12px; margin-bottom: 8px; }
     .lobby-player.pronto { border-color: var(--green); background: #f0fdf4; }
-    
     .timer-bar { width: 100%; height: 12px; background: var(--line); border-radius: 6px; overflow: hidden; margin: 10px 0; }
     .timer-fill { height: 100%; background: var(--green); width: 100%; transition: width 1s linear, background-color 0.3s; }
     .timer-fill.warning { background: var(--seduc-yellow); }
     .timer-fill.danger { background: var(--red); }
-
     .podium-card { display: flex; align-items: center; gap: 14px; padding: 16px; border-radius: 20px; border: 2px solid var(--line); background: #fff; margin-bottom: 10px; }
     .podium-card.first { border-color: #fbbf24; background: #fffbeb; }
     .podium-card.second { border-color: #94a3b8; background: #f8fafc; }
     .podium-card.third { border-color: #b45309; background: #fff7ed; }
     .podium-rank { font-size: 1.5rem; font-weight: 900; width: 30px; text-align: center; }
+    
+    .quiz-option { width: 100%; padding: 18px; font-size: 1.1rem; font-weight: 800; text-align: left; border-radius: 16px; border: 2px solid var(--line); background: #fff; cursor: pointer; transition: all 0.2s; display: flex; align-items: center; gap: 12px; margin-bottom: 10px;}
+    .quiz-option:active { transform: scale(0.98); }
+    .quiz-option span.letter { display: inline-flex; align-items: center; justify-content: center; width: 30px; height: 30px; border-radius: 8px; background: var(--line); color: var(--text); }
+    .quiz-option.selected { border-color: var(--seduc-blue); background: #f0f6ff; }
+    .quiz-option.correct { border-color: var(--green); background: #dcfce7; color: #166534; }
+    .quiz-option.wrong { border-color: var(--red); background: #fee2e2; color: #991b1b; }
 
     .bottom-nav { position: fixed; left: 50%; bottom: 10px; transform: translateX(-50%); width: min(448px, calc(100% - 18px)); background: rgba(255,255,255,.92); backdrop-filter: blur(12px); border: 1px solid rgba(226,232,240,.9); border-radius: 26px; box-shadow: 0 18px 40px rgba(15,23,42,.12); padding: 8px; display: none; grid-template-columns: repeat(4, 1fr); gap: 8px; z-index: 50; }
     .bottom-nav.show { display: grid; }
     .nav-btn { border: none; background: transparent; border-radius: 18px; padding: 10px 6px; font-size: .78rem; font-weight: 800; color: var(--muted); display: grid; gap: 4px; justify-items: center; cursor: pointer; }
     .nav-btn.active { background: linear-gradient(145deg, #eef6ff, #fff8df); color: var(--seduc-blue); }
-    
     .hidden { display: none !important; }
   </style>
 </head>
 <body>
   <div class="app">
-
     <section id="screenLogin" class="screen active">
-      <div class="topbar">
-        <div class="brand"><div class="brand-badge">N</div><div>Notáveis Play</div></div>
-      </div>
-      <div class="hero">
-        <h1>Bem-vindo!</h1>
-        <p>Faça login ou crie sua conta para jogar.</p>
-      </div>
+      <div class="topbar"><div class="brand"><div class="brand-badge">N</div><div>Notáveis Play</div></div></div>
+      <div class="hero"><h1>Bem-vindo!</h1><p>Faça login ou crie sua conta para jogar.</p></div>
       <div class="section-card">
         <input id="loginName" class="input" type="text" placeholder="Seu apelido" style="margin-bottom: 12px;" />
         <input id="loginPassword" class="input" type="password" placeholder="Sua senha" />
       </div>
-      <div class="stack-lg" style="margin-top: 16px;">
-        <button class="btn" id="btnDoLogin">Entrar na Conta</button>
-        <button class="btn secondary" id="btnGoToRegister">Criar Novo Personagem</button>
-      </div>
+      <div class="stack-lg" style="margin-top: 16px;"><button class="btn" id="btnDoLogin">Entrar na Conta</button><button class="btn secondary" id="btnGoToRegister">Criar Novo Personagem</button></div>
     </section>
 
     <section id="screenProfile" class="screen">
-      <div class="topbar">
-        <div class="brand"><div class="brand-badge">N</div><div>Nova Conta</div></div>
-      </div>
-      <div class="section-card">
-        <h2 class="section-title">Escolha o personagem</h2>
-        <div class="character-grid" id="characterGrid"></div>
-      </div>
+      <div class="topbar"><div class="brand"><div class="brand-badge">N</div><div>Nova Conta</div></div></div>
+      <div class="section-card"><h2 class="section-title">Escolha o personagem</h2><div class="character-grid" id="characterGrid"></div></div>
       <div class="section-card">
         <input id="playerName" class="input" type="text" maxlength="18" placeholder="Apelido (Ex: Neto)" style="margin-bottom: 12px;" />
         <input id="playerPassword" class="input" type="password" placeholder="Senha" />
       </div>
-      <div class="stack-lg" style="margin-top: 16px;">
-        <button class="btn" id="btnCreateProfile">Criar Conta</button>
-        <button class="btn secondary" id="btnGoToLogin">Já tenho conta (Voltar)</button>
-      </div>
+      <div class="stack-lg" style="margin-top: 16px;"><button class="btn" id="btnCreateProfile">Criar Conta</button><button class="btn secondary" id="btnGoToLogin">Já tenho conta (Voltar)</button></div>
     </section>
 
     <section id="screenHome" class="screen">
-      <div class="topbar">
-        <div class="brand"><div class="brand-badge">N</div><div><div>Lobby</div></div></div>
-        <button class="icon-btn" id="btnOpenSettings">⚙️</button>
-      </div>
+      <div class="topbar"><div class="brand"><div class="brand-badge">N</div><div><div>Lobby</div></div></div><button class="icon-btn" id="btnOpenSettings">⚙️</button></div>
       <div class="player-card card">
         <div class="player-avatar"><img id="homeAvatarImg" src="assets/personagens/einstein/base.png" /></div>
-        <div style="flex:1; min-width:0;">
-          <strong id="homeName" style="display:block; font-size:1.1rem;">Jogador</strong>
-          <div class="level-badge" style="margin-top:10px;">⭐ Nível <span id="homeLevel">1</span></div>
-        </div>
+        <div style="flex:1; min-width:0;"><strong id="homeName" style="display:block; font-size:1.1rem;">Jogador</strong><div class="level-badge" style="margin-top:10px;">⭐ Nível <span id="homeLevel">1</span></div></div>
       </div>
-
       <div class="section-card" style="margin-top:16px;">
         <h2 class="section-title">Ferramentas de Ajuda</h2>
         <button class="btn secondary" id="btnOpenCalculadoras" style="border-color: var(--seduc-yellow); color: #b45309;">🧮 Abrir Calculadoras</button>
       </div>
-
       <div class="section-card" style="margin-top:16px;">
-        <h2 class="section-title">Multiplayer (10 Questões)</h2>
+        <h2 class="section-title">Multiplayer (Aleatório)</h2>
         <button class="btn yellow" id="btnCriarSala" style="margin-bottom: 10px;">🎮 Criar Nova Sala</button>
         <div style="display: flex; gap: 10px;">
           <input type="text" id="inputPinSala" class="input" placeholder="PIN da Sala" style="flex: 1;" maxlength="4" />
           <button class="btn green" id="btnEntrarSala" style="width: auto;">Entrar</button>
         </div>
       </div>
-
       <div class="section-card" style="margin-top:16px;">
         <h2 class="section-title">Treino Solo</h2>
         <button class="btn secondary" id="btnStartGame">Modo Infinito</button>
@@ -196,47 +146,29 @@
     </section>
 
     <section id="screenCalculadoras" class="screen">
-      <div class="topbar">
-        <button class="icon-btn nav-back" data-target="screenHome">←</button>
-        <div class="brand">🧮 Calculadoras</div>
-      </div>
-
+      <div class="topbar"><button class="icon-btn nav-back" data-target="screenHome">←</button><div class="brand">🧮 Calculadoras</div></div>
       <div class="section-card" style="margin-bottom: 14px;">
         <h2 class="section-title">1. Calculadora Normal</h2>
         <input type="text" id="calcNormalInput" class="input" placeholder="Ex: 5 * 8 + 12" style="margin-bottom: 10px; font-family: monospace;" />
         <button class="btn green" onclick="try{ document.getElementById('calcNormalInput').value = eval(document.getElementById('calcNormalInput').value) }catch(e){ alert('Conta inválida!') }">=</button>
       </div>
-
       <div class="section-card" style="margin-bottom: 14px;">
         <h2 class="section-title">2. Produtos Notáveis</h2>
         <p class="muted" style="font-size: 0.9rem; margin-top: 0;">Calcula o quadrado da soma ou diferença: (A ± B)²</p>
         <div style="display: flex; gap: 8px; align-items: center; margin-bottom: 10px;">
           ( <input type="text" id="pnA" class="input" placeholder="x" style="width: 60px; text-align: center;">
-          <select id="pnSinal" class="select" style="width: 60px; padding: 10px;">
-            <option value="+">+</option><option value="-">-</option>
-          </select>
+          <select id="pnSinal" class="select" style="width: 60px; padding: 10px;"><option value="+">+</option><option value="-">-</option></select>
           <input type="number" id="pnB" class="input" placeholder="5" style="width: 60px; text-align: center;"> )²
         </div>
         <button class="btn" id="btnCalcPN">Calcular</button>
         <div id="pnResultado" class="input" style="margin-top: 10px; background: var(--surface-2); font-weight: bold; text-align: center;">Resultado...</div>
       </div>
-
       <div class="section-card">
         <h2 class="section-title">3. Frações Básicas</h2>
         <div style="display: flex; gap: 8px; align-items: center; margin-bottom: 10px;">
-          <div style="display: flex; flex-direction: column; gap: 4px; width: 60px;">
-            <input type="number" id="f1Num" class="input" style="padding: 8px; text-align: center;">
-            <hr style="width: 100%; margin: 0; border: 1px solid var(--line);">
-            <input type="number" id="f1Den" class="input" style="padding: 8px; text-align: center;">
-          </div>
-          <select id="fSinal" class="select" style="width: 60px; padding: 10px;">
-            <option value="+">+</option><option value="-">-</option><option value="*">*</option><option value="/">/</option>
-          </select>
-          <div style="display: flex; flex-direction: column; gap: 4px; width: 60px;">
-            <input type="number" id="f2Num" class="input" style="padding: 8px; text-align: center;">
-            <hr style="width: 100%; margin: 0; border: 1px solid var(--line);">
-            <input type="number" id="f2Den" class="input" style="padding: 8px; text-align: center;">
-          </div>
+          <div style="display: flex; flex-direction: column; gap: 4px; width: 60px;"><input type="number" id="f1Num" class="input" style="padding: 8px; text-align: center;"><hr style="width: 100%; margin: 0; border: 1px solid var(--line);"><input type="number" id="f1Den" class="input" style="padding: 8px; text-align: center;"></div>
+          <select id="fSinal" class="select" style="width: 60px; padding: 10px;"><option value="+">+</option><option value="-">-</option><option value="*">*</option><option value="/">/</option></select>
+          <div style="display: flex; flex-direction: column; gap: 4px; width: 60px;"><input type="number" id="f2Num" class="input" style="padding: 8px; text-align: center;"><hr style="width: 100%; margin: 0; border: 1px solid var(--line);"><input type="number" id="f2Den" class="input" style="padding: 8px; text-align: center;"></div>
         </div>
         <button class="btn" id="btnCalcFra">Calcular</button>
         <div id="fResultado" class="input" style="margin-top: 10px; background: var(--surface-2); font-weight: bold; text-align: center;">Resultado...</div>
@@ -245,60 +177,20 @@
 
     <section id="screenGame" class="screen" aria-label="Tela do jogo solo">
       <div class="game-shell">
-        <div class="game-header card">
-          <button class="icon-btn nav-back" data-target="screenHome" aria-label="Voltar">←</button>
-          <div style="flex:1; min-width:0;">
-            <strong id="gamePlayerName">Jogador</strong>
-            <div class="muted">Modo Treino</div>
-          </div>
-          <div class="pill">⏱️ <span id="gameTimer">00:00</span></div>
-        </div>
-        
-        <div class="equation-card card">
-          <div class="equation-meta" id="equationMeta">Aguardando questão...</div>
-          <div class="equation-text" id="equationText">Toque em começar para gerar.</div>
-          <input id="answerInput" class="input" type="text" placeholder="Digite sua resposta" autocomplete="off" />
-          <div class="message info" id="feedback" style="margin-top:12px;">Pronto para jogar.</div>
-        </div>
-        
-        <div class="action-grid">
-          <button class="btn green" id="btnCheck">Conferir</button>
-          <button class="btn yellow" id="btnNew">Nova questão</button>
-        </div>
-        
-        <div class="toolbar-row">
-          <button class="small-btn" id="btnHint">Dica</button>
-          <button class="small-btn" id="btnSolution">Solução</button>
-          <button class="small-btn" id="btnSpeak">Ler</button>
-          <button class="small-btn" id="btnSkip">Pular</button>
-        </div>
-        
-        <div id="hintBox" class="hint-box hidden"></div>
-        <div id="solutionBox" class="solution-box hidden"></div>
-        
-        <div class="stats-grid" style="margin-top: 10px;">
-          <div class="stat-card"><strong id="gameScore">0</strong>Pontos</div>
-          <div class="stat-card"><strong id="gameStreak">0</strong>Sequência</div>
-        </div>
+        <div class="game-header card"><button class="icon-btn nav-back" data-target="screenHome" aria-label="Voltar">←</button><div style="flex:1; min-width:0;"><strong id="gamePlayerName">Jogador</strong><div class="muted">Modo Treino</div></div><div class="pill">⏱️ <span id="gameTimer">00:00</span></div></div>
+        <div class="equation-card card"><div class="equation-meta" id="equationMeta">Aguardando questão...</div><div class="equation-text" id="equationText">Toque em começar para gerar.</div><input id="answerInput" class="input" type="text" placeholder="Digite sua resposta" autocomplete="off" /><div class="message info" id="feedback" style="margin-top:12px;">Pronto para jogar.</div></div>
+        <div class="action-grid"><button class="btn green" id="btnCheck">Conferir</button><button class="btn yellow" id="btnNew">Nova questão</button></div>
+        <div class="toolbar-row"><button class="small-btn" id="btnHint">Dica</button><button class="small-btn" id="btnSolution">Solução</button><button class="small-btn" id="btnSpeak">Ler</button><button class="small-btn" id="btnSkip">Pular</button></div>
+        <div id="hintBox" class="hint-box hidden"></div><div id="solutionBox" class="solution-box hidden"></div>
+        <div class="stats-grid" style="margin-top: 10px;"><div class="stat-card"><strong id="gameScore">0</strong>Pontos</div><div class="stat-card"><strong id="gameStreak">0</strong>Sequência</div></div>
       </div>
     </section>
 
     <section id="screenEspera" class="screen">
-      <div class="topbar">
-        <button class="icon-btn" id="btnSairSala">←</button>
-        <div class="brand" id="esperaPinTexto" style="font-size: 1.2rem; color: var(--text);">PIN: ----</div>
-      </div>
-      <div class="hero" style="text-align: center;">
-        <h1 id="esperaStatus">Aguardando jogadores...</h1>
-        <p>A partida de 10 questões começará quando todos estiverem prontos.</p>
-      </div>
-      <div class="section-card">
-        <h2 class="section-title">Jogadores na Sala</h2>
-        <div id="listaJogadores" class="lobby-grid"></div>
-      </div>
-      <div class="stack-lg" style="margin-top:auto;">
-        <button class="btn green" id="btnEstouPronto">ESTOU PRONTO!</button>
-      </div>
+      <div class="topbar"><button class="icon-btn" id="btnSairSala">←</button><div class="brand" id="esperaPinTexto" style="font-size: 1.2rem; color: var(--text);">PIN: ----</div></div>
+      <div class="hero" style="text-align: center;"><h1 id="esperaStatus">Aguardando...</h1><p>A partida começará quando todos estiverem prontos.</p></div>
+      <div class="section-card"><h2 class="section-title">Jogadores na Sala</h2><div id="listaJogadores" class="lobby-grid"></div></div>
+      <div class="stack-lg" style="margin-top:auto;"><button class="btn green" id="btnEstouPronto">ESTOU PRONTO!</button></div>
     </section>
 
     <section id="screenQuizAoVivo" class="screen">
@@ -309,85 +201,28 @@
         </div>
         <div class="timer-bar"><div class="timer-fill" id="quizTempoBarra"></div></div>
         
-        <div class="equation-card card" style="margin-top: 10px;">
-          <div class="equation-text" id="quizPergunta" style="text-align: center;">Carregando pergunta...</div>
-          
-          <input id="mpAnswerInput" class="input" type="text" placeholder="Digite sua resposta" autocomplete="off" style="text-align: center; font-size: 1.2rem; padding: 15px;" />
-          
-          <button class="btn green" id="btnMpCheck" style="margin-top: 12px;">Enviar Resposta</button>
-        </div>
-
-        <div class="toolbar-row" style="margin-top: 5px;">
-          <button class="small-btn" id="btnMpHint">Dica</button>
-          <button class="small-btn" id="btnMpSolution">Solução</button>
+        <div class="hero" style="margin-top: 10px;">
+          <h2 id="quizPergunta" style="margin: 0; font-size: 1.3rem; text-align: center;">Carregando...</h2>
         </div>
         
-        <div id="mpHintBox" class="hint-box hidden"></div>
-        <div id="mpSolutionBox" class="solution-box hidden"></div>
-
+        <div id="quizOpcoesBox" style="margin-top: 10px;"></div>
+        
         <div id="quizFeedback" class="section-card hidden" style="text-align: center; margin-top: 15px;">
-          <h2 id="quizFeedbackTexto" style="margin:0;">Aguardando...</h2>
+          <h2 id="quizFeedbackTexto" style="margin:0;">Aguardando os outros...</h2>
         </div>
       </div>
     </section>
 
     <section id="screenPodio" class="screen">
-      <div class="hero" style="text-align: center; background: linear-gradient(145deg, #fffbeb, #fef3c7);">
-        <h1>🏆 Fim de Jogo!</h1>
-        <p>Confira a classificação final das 10 questões.</p>
-      </div>
+      <div class="hero" style="text-align: center; background: linear-gradient(145deg, #fffbeb, #fef3c7);"><h1>🏆 Fim de Jogo!</h1><p>Classificação final das 10 questões.</p></div>
       <div id="podioLista" class="stack" style="margin-top: 20px;"></div>
-      <div class="stack-lg" style="margin-top: 30px;">
-        <button class="btn" id="btnVoltarLobbyPodio">Voltar ao Início</button>
-      </div>
+      <div class="stack-lg" style="margin-top: 30px;"><button class="btn" id="btnVoltarLobbyPodio">Voltar ao Início</button></div>
     </section>
 
-    <section id="screenProfileView" class="screen">
-      <div class="topbar">
-        <button class="icon-btn nav-back" data-target="screenHome">←</button>
-        <div class="brand"><div class="brand-badge">N</div><div>Perfil</div></div>
-      </div>
-      <div class="player-card card">
-        <div class="player-avatar"><img id="profileAvatarImg" src="assets/personagens/einstein/base.png" /></div>
-        <div>
-          <strong id="profileName">Jogador</strong>
-          <div class="level-badge" style="margin-top:8px;">🏆 Recorde <span id="profileBest">0</span></div>
-        </div>
-      </div>
-      <div class="stats-grid" style="margin-top:14px;">
-        <div class="stat-card"><strong id="profileXp">0</strong>XP</div>
-        <div class="stat-card"><strong id="profileLevel">1</strong>Nível</div>
-      </div>
-    </section>
-
-    <section id="screenHistory" class="screen">
-      <div class="topbar">
-        <button class="icon-btn nav-back" data-target="screenHome">←</button>
-        <div class="brand"><div class="brand-badge">N</div><div>Histórico (Solo)</div></div>
-      </div>
-      <div class="section-card">
-        <h2 class="section-title">Últimas respostas</h2>
-        <div id="historyList" class="stack">Nenhuma questão respondida ainda.</div>
-      </div>
-    </section>
-
-    <section id="screenSettings" class="screen">
-      <div class="topbar">
-        <button class="icon-btn nav-back" data-target="screenHome">←</button>
-        <div class="brand"><div class="brand-badge">N</div><div>Ajustes</div></div>
-      </div>
-      <div class="section-card">
-        <h2 class="section-title">Sair da Conta</h2>
-        <button class="btn red" id="btnLogout">Deslogar / Trocar de Conta</button>
-      </div>
-    </section>
-
-    <nav id="bottomNav" class="bottom-nav">
-      <button class="nav-btn active" data-target="screenHome">🏠<span>Lobby</span></button>
-      <button class="nav-btn" data-target="screenProfileView">👤<span>Perfil</span></button>
-      <button class="nav-btn" data-target="screenHistory">🕘<span>Histórico</span></button>
-      <button class="nav-btn" data-target="screenSettings">⚙️<span>Ajustes</span></button>
-    </nav>
+    <section id="screenProfileView" class="screen"><div class="topbar"><button class="icon-btn nav-back" data-target="screenHome">←</button><div class="brand">Perfil</div></div><div class="player-card card"><div class="player-avatar"><img id="profileAvatarImg" src="assets/personagens/einstein/base.png" /></div><div><strong id="profileName">Jogador</strong><div class="level-badge" style="margin-top:8px;">🏆 Recorde <span id="profileBest">0</span></div></div></div><div class="stats-grid" style="margin-top:14px;"><div class="stat-card"><strong id="profileXp">0</strong>XP</div><div class="stat-card"><strong id="profileLevel">1</strong>Nível</div></div></section>
+    <section id="screenHistory" class="screen"><div class="topbar"><button class="icon-btn nav-back" data-target="screenHome">←</button><div class="brand">Histórico</div></div><div class="section-card"><h2 class="section-title">Últimas respostas</h2><div id="historyList" class="stack">Nenhuma resposta ainda.</div></div></section>
+    <section id="screenSettings" class="screen"><div class="topbar"><button class="icon-btn nav-back" data-target="screenHome">←</button><div class="brand">Ajustes</div></div><div class="section-card"><button class="btn red" id="btnLogout">Deslogar</button></div></section>
+    <nav id="bottomNav" class="bottom-nav"><button class="nav-btn active" data-target="screenHome">🏠<span>Lobby</span></button><button class="nav-btn" data-target="screenProfileView">👤<span>Perfil</span></button><button class="nav-btn" data-target="screenHistory">🕘<span>Histórico</span></button><button class="nav-btn" data-target="screenSettings">⚙️<span>Ajustes</span></button></nav>
   </div>
 
   <script>
@@ -395,530 +230,181 @@
       const API = "https://notaveis-backend.onrender.com";
       let socket = null;
 
-      async function registerUser(username, password, personagem) {
-        try {
-          const res = await fetch(API + "/register", { method: "POST", headers: {"Content-Type": "application/json"}, body: JSON.stringify({ username, password, personagem }) });
-          return await res.json();
-        } catch (error) { return { success: false, message: "Erro no servidor." }; }
-      }
+      async function registerUser(username, password, personagem) { try { const res = await fetch(API + "/register", { method: "POST", headers: {"Content-Type": "application/json"}, body: JSON.stringify({ username, password, personagem }) }); return await res.json(); } catch (error) { return { success: false, message: "Erro no servidor." }; } }
+      async function loginUser(username, password) { try { const res = await fetch(API + "/login", { method: "POST", headers: {"Content-Type": "application/json"}, body: JSON.stringify({ username, password }) }); return await res.json(); } catch (error) { return { success: false, message: "Erro no servidor." }; } }
+      async function salvarPontos(username, pontos) { try { await fetch(API + "/updateScore", { method: "POST", headers: {"Content-Type": "application/json"}, body: JSON.stringify({ username, pontos }) }); } catch (error) {} }
 
-      async function loginUser(username, password) {
-        try {
-          const res = await fetch(API + "/login", { method: "POST", headers: {"Content-Type": "application/json"}, body: JSON.stringify({ username, password }) });
-          return await res.json();
-        } catch (error) { return { success: false, message: "Erro no servidor." }; }
-      }
+      const $ = (id) => document.getElementById(id); const $$ = (sel) => [...document.querySelectorAll(sel)];
 
-      async function salvarPontos(username, pontos) {
-        try { await fetch(API + "/updateScore", { method: "POST", headers: {"Content-Type": "application/json"}, body: JSON.stringify({ username, pontos }) }); } catch (error) {}
-      }
-
-      const $ = (id) => document.getElementById(id);
-      const $$ = (sel) => [...document.querySelectorAll(sel)];
-
-      const characters = [
-        { id: "einstein", name: "Einstein" }, { id: "neymar", name: "Neymar" },
-        { id: "messi", name: "Messi" }, { id: "cr7", name: "CR7" },
-        { id: "tesla", name: "Tesla" }, { id: "taylor", name: "Taylor" },
-        { id: "eilish", name: "Eilish" }, { id: "anitta", name: "Anitta" },
-        { id: "braga", name: "Braga" }, { id: "pericles", name: "Péricles" },
-        { id: "alok", name: "Alok" }, { id: "sandler", name: "Sandler" },
-        { id: "will", name: "Will" }, { id: "luthor", name: "Luthor" },
-        { id: "mitski", name: "Mitski" }
-      ];
-
-      const ASSET_ROOT = "assets/personagens";
-      const FALLBACK_IMAGE = ASSET_ROOT + "/einstein/base.png";
-
-      const state = {
-        player: { name: "", characterId: "einstein", imagePath: FALLBACK_IMAGE },
-        currentScreen: "screenLogin", voiceEnabled: true, allowTimer: true, timerSeconds: 0, timerInterval: null, current: null,
-        score: 0, bestScore: 0, correct: 0, wrong: 0, streak: 0, bestStreak: 0, xp: 0, level: 1, totalRounds: 0,
-        history: [], mpRespondido: false, codigoSalaAtual: null
-      };
-
+      // 15 PERSONAGENS
+      const characters = [ { id: "einstein", name: "Einstein" }, { id: "neymar", name: "Neymar" }, { id: "messi", name: "Messi" }, { id: "cr7", name: "CR7" }, { id: "tesla", name: "Tesla" }, { id: "taylor", name: "Taylor" }, { id: "eilish", name: "Eilish" }, { id: "anitta", name: "Anitta" }, { id: "braga", name: "Braga" }, { id: "pericles", name: "Péricles" }, { id: "alok", name: "Alok" }, { id: "sandler", name: "Sandler" }, { id: "will", name: "Will" }, { id: "luthor", name: "Luthor" }, { id: "mitski", name: "Mitski" } ];
+      const ASSET_ROOT = "assets/personagens"; const FALLBACK_IMAGE = ASSET_ROOT + "/einstein/base.png";
+      const state = { player: { name: "", characterId: "einstein", imagePath: FALLBACK_IMAGE }, currentScreen: "screenLogin", voiceEnabled: true, allowTimer: true, timerSeconds: 0, timerInterval: null, current: null, score: 0, bestScore: 0, correct: 0, wrong: 0, streak: 0, xp: 0, level: 1, totalRounds: 0, mpRespondido: false, codigoSalaAtual: null };
       const families = [];
 
-      function getCharacterImagePath(id) {
-        const c = characters.find(x => x.id === id);
-        return c ? `${ASSET_ROOT}/${id}/base.png` : FALLBACK_IMAGE;
-      }
+      function getCharacterImagePath(id) { const c = characters.find(x => x.id === id); return c ? `${ASSET_ROOT}/${id}/base.png` : FALLBACK_IMAGE; }
+      function showScreen(id, fromNav = false) { $$(".screen").forEach(s => s.classList.remove("active")); const el = $(id); if (el) el.classList.add("active"); state.currentScreen = id; const showNav = ["screenHome", "screenProfileView", "screenHistory", "screenSettings"].includes(id); const nav = $("bottomNav"); if (nav) nav.classList.toggle("show", showNav); if (showNav) $$(".nav-btn").forEach(btn => btn.classList.toggle("active", btn.dataset.target === id)); }
+      function renderCharacterGrid() { const grid = $("characterGrid"); if (!grid) return; grid.innerHTML = characters.map(c => `<div class="character-card ${c.id === state.player.characterId ? 'selected' : ''}" data-id="${c.id}"><img src="${getCharacterImagePath(c.id)}" onerror="this.src='${FALLBACK_IMAGE}'"><span>${c.name}</span></div>`).join(""); $$(".character-card").forEach(card => { card.addEventListener("click", () => { state.player.characterId = card.dataset.id; renderCharacterGrid(); }); }); }
+      function checkAutoLogin() { const savedUser = localStorage.getItem("notaveis_user"); const savedChar = localStorage.getItem("notaveis_char"); if (savedUser && savedChar) { state.player.name = savedUser; state.player.characterId = savedChar; if($("homeName")) $("homeName").textContent = savedUser; if($("homeAvatarImg")) $("homeAvatarImg").src = getCharacterImagePath(savedChar); if($("profileAvatarImg")) $("profileAvatarImg").src = getCharacterImagePath(savedChar); if($("profileName")) $("profileName").textContent = savedUser; showScreen("screenHome"); } else { showScreen("screenLogin"); } }
 
-      function showScreen(id, fromNav = false) {
-        $$(".screen").forEach(s => s.classList.remove("active"));
-        const el = $(id);
-        if (el) el.classList.add("active");
-        state.currentScreen = id;
-        const showNav = ["screenHome", "screenProfileView", "screenHistory", "screenSettings"].includes(id);
-        const nav = $("bottomNav");
-        if (nav) nav.classList.toggle("show", showNav);
-        if (showNav) $$(".nav-btn").forEach(btn => btn.classList.toggle("active", btn.dataset.target === id));
-      }
-
-      function renderCharacterGrid() {
-        const grid = $("characterGrid");
-        if (!grid) return;
-        grid.innerHTML = characters.map(c => `
-          <div class="character-card ${c.id === state.player.characterId ? 'selected' : ''}" data-id="${c.id}">
-            <img src="${getCharacterImagePath(c.id)}" onerror="this.src='${FALLBACK_IMAGE}'">
-            <span>${c.name}</span>
-          </div>
-        `).join("");
-        $$(".character-card").forEach(card => {
-          card.addEventListener("click", () => {
-            state.player.characterId = card.dataset.id;
-            renderCharacterGrid();
-          });
-        });
-      }
-
-      function checkAutoLogin() {
-        const savedUser = localStorage.getItem("notaveis_user");
-        const savedChar = localStorage.getItem("notaveis_char");
-        if (savedUser && savedChar) {
-          state.player.name = savedUser;
-          state.player.characterId = savedChar;
-          if($("homeName")) $("homeName").textContent = savedUser;
-          if($("homeAvatarImg")) $("homeAvatarImg").src = getCharacterImagePath(savedChar);
-          if($("profileAvatarImg")) $("profileAvatarImg").src = getCharacterImagePath(savedChar);
-          if($("profileName")) $("profileName").textContent = savedUser;
-          showScreen("screenHome");
-        } else {
-          showScreen("screenLogin");
-        }
-      }
-
-      // ================== LEITOR DE VOZ (SUPER ADAPTADO) ==================
       function speak(text) {
-        if (!state.voiceEnabled || !("speechSynthesis" in window)) return;
-        window.speechSynthesis.cancel();
-        
-        // Traduz tanto o hífen quanto o traço matemático pra "menos"
-        let textoFalado = text
-          .replace(/-/g, " menos ")
-          .replace(/−/g, " menos ")
-          .replace(/\(/g, " abre parênteses, ")
-          .replace(/\)/g, " fecha parênteses, ")
-          .replace(/²/g, " ao quadrado ")
-          .replace(/\+/g, " mais ")
-          .replace(/x/gi, " xis ")
-          .replace(/=/g, " igual a ");
-
-        const u = new SpeechSynthesisUtterance(textoFalado);
-        u.lang = "pt-BR"; u.rate = 0.9;
-        window.speechSynthesis.speak(u);
+        if (!state.voiceEnabled || !("speechSynthesis" in window)) return; window.speechSynthesis.cancel();
+        let textoFalado = text.replace(/-/g, " menos ").replace(/−/g, " menos ").replace(/\(/g, " abre parênteses, ").replace(/\)/g, " fecha parênteses, ").replace(/²/g, " ao quadrado ").replace(/\+/g, " mais ").replace(/x/gi, " xis ").replace(/=/g, " igual a ");
+        const u = new SpeechSynthesisUtterance(textoFalado); u.lang = "pt-BR"; u.rate = 0.9; window.speechSynthesis.speak(u);
       }
 
-      // ================== MOTOR MATEMÁTICO ==================
-      function randInt(min, max) { return Math.floor(Math.random() * (max - min + 1)) + min; }
-      function choice(arr) { return arr[randInt(0, arr.length - 1)]; }
-      function sup(str) { return str.replace(/\^2/g, "²"); }
-
-      function tokenize(expr) {
-        const cleaned = expr.toLowerCase().replace(/\s+/g, "").replace(/²/g, "^2").replace(/−/g, "-").replace(/\*/g, "")
-          .replace(/([a-z])(\d)/g, "$1*$2").replace(/(\d)([a-z])/g, "$1*$2").replace(/([a-z])([a-z])/g, "$1*$2");
-        const out = []; let i = 0;
-        while (i < cleaned.length) {
-          const ch = cleaned[i];
-          if ("+-()^*".includes(ch)) { out.push(ch); i++; continue; }
-          if (/\d/.test(ch)) { let n = ch; i++; while (i < cleaned.length && /\d/.test(cleaned[i])) n += cleaned[i++]; out.push(n); continue; }
-          if (/[a-z]/.test(ch)) { out.push(ch); i++; continue; }
-          i++;
-        }
-        return out;
-      }
-
-      function addPolys(a, b, factor = 1) {
-        const r = { ...a };
-        for (const k in b) r[k] = (r[k] || 0) + factor * b[k];
-        Object.keys(r).forEach(k => { if (r[k] === 0) delete r[k]; });
-        return r;
-      }
-
-      function multiplyPolys(a, b) {
-        const result = {};
-        for (const k1 in a) {
-          for (const k2 in b) {
-            const c = a[k1] * b[k2];
-            const map = {};
-            (k1 + "," + k2).split(",").filter(Boolean).forEach(part => {
-              const [v,p] = part.split("^"); map[v] = (map[v] || 0) + Number(p);
-            });
-            const key = Object.entries(map).filter(([,p]) => p !== 0).sort((x,y) => x[0].localeCompare(y[0])).map(([v,p]) => v + "^" + p).join(",");
-            result[key] = (result[key] || 0) + c;
-          }
-        }
-        return result;
-      }
-
-      function parsePolynomial(expr) {
-        const tokens = tokenize(expr); let i = 0;
-        function parseExpression() {
-          let left = parseTerm();
-          while (i < tokens.length && (tokens[i] === "+" || tokens[i] === "-")) {
-            const op = tokens[i++]; left = addPolys(left, parseTerm(), op === "+" ? 1 : -1);
-          }
-          return left;
-        }
-        function parseTerm() {
-          let left = parseFactor();
-          while (i < tokens.length && tokens[i] === "*") { i++; left = multiplyPolys(left, parseFactor()); }
-          return left;
-        }
-        function parseFactor() {
-          if (tokens[i] === "+") { i++; return parseFactor(); }
-          if (tokens[i] === "-") { i++; const f = parseFactor(); return Object.fromEntries(Object.entries(f).map(([k,v]) => [k, -v])); }
-          let base;
-          if (tokens[i] === "(") { i++; base = parseExpression(); if (tokens[i] === ")") i++; }
-          else if (/^\d+$/.test(tokens[i] || "")) { base = { "": Number(tokens[i++]) }; }
-          else if (/^[a-z]$/.test(tokens[i] || "")) { const v = tokens[i++]; base = { [v + "^1"]: 1 }; }
-          else { base = { "": 0 }; }
-          if (tokens[i] === "^") {
-            i++; const exp = Number(tokens[i++] || 1); let result = { "": 1 };
-            for (let k = 0; k < exp; k++) result = multiplyPolys(result, base);
-            return result;
-          }
-          return base;
-        }
-        return parseExpression();
-      }
-
-      function canonical(poly) {
-        return Object.entries(poly).filter(([,v]) => v !== 0).sort((a,b) => {
-          const degA = a[0].split(",").reduce((s,p) => s + (p ? Number(p.split("^")[1]) : 0), 0);
-          const degB = b[0].split(",").reduce((s,p) => s + (p ? Number(p.split("^")[1]) : 0), 0);
-          if (degB !== degA) return degB - degA;
-          return a[0].localeCompare(b[0]);
-        }).map(([k,v]) => v + "|" + k).join(";") || "0";
-      }
-
-      function equivalent(a, b) {
-        try { return canonical(parsePolynomial(a)) === canonical(parsePolynomial(b)); }
-        catch { return false; }
-      }
-
-      // Tornei ela global pra checar a resposta do Multiplayer também
-      window.answerIsCorrect = function(input, expected) {
-        if (/^\d+$/.test(expected.trim())) return input.trim() === expected.trim();
-        return equivalent(input, expected);
-      }
+      // MOTOR MATEMÁTICO CLIENTE (Para o Solo)
+      function randInt(min, max) { return Math.floor(Math.random() * (max - min + 1)) + min; } function choice(arr) { return arr[randInt(0, arr.length - 1)]; } function sup(str) { return str.replace(/\^2/g, "²"); }
+      function limparResposta(texto) { if (!texto) return ""; return texto.toLowerCase().replace(/\s+/g, "").replace(/\^2/g, "²").replace(/x2/g, "x²").replace(/−/g, "-"); }
+      window.answerIsCorrect = function(input, expected) { return limparResposta(input) === limparResposta(expected); }
 
       function buildFamilies() {
-        families.push({
-          family: "quadradoSomaSimples",
-          generator: () => {
-            const n = randInt(1, 9);
-            return { prompt: sup(`(x + ${n})^2`), answer: `x^2 + ${2*n}x + ${n*n}`, hint: "Primeiro ao quadrado, dobro do produto...", solution: sup(`x^2 + ${2*n}x + ${n*n}`) };
-          }
-        });
-        families.push({
-          family: "quadradoDiferencaSimples",
-          generator: () => {
-            const n = randInt(1, 9);
-            return { prompt: sup(`(x - ${n})^2`), answer: `x^2 - ${2*n}x + ${n*n}`, hint: "Muda o sinal do termo do meio.", solution: sup(`x^2 - ${2*n}x + ${n*n}`) };
-          }
-        });
-        families.push({
-          family: "somaPelaDiferenca",
-          generator: () => {
-            const n = randInt(1, 10);
-            return { prompt: sup(`(x + ${n})(x - ${n})`), answer: `x^2 - ${n*n}`, hint: "Os termos do meio se cancelam.", solution: sup(`x^2 - ${n*n}`) };
-          }
-        });
+        families.push({ family: "quadradoSomaSimples", generator: () => { const n = randInt(1, 9); return { prompt: sup(`(x + ${n})^2`), answer: `x² + ${2*n}x + ${n*n}`, hint: "Primeiro ao quadrado, dobro do produto...", solution: sup(`x² + ${2*n}x + ${n*n}`) }; } });
+        families.push({ family: "quadradoDiferencaSimples", generator: () => { const n = randInt(1, 9); return { prompt: sup(`(x - ${n})^2`), answer: `x² - ${2*n}x + ${n*n}`, hint: "Muda o sinal do termo do meio.", solution: sup(`x² - ${2*n}x + ${n*n}`) }; } });
+        families.push({ family: "somaPelaDiferenca", generator: () => { const n = randInt(1, 10); return { prompt: sup(`(x + ${n})(x - ${n})`), answer: `x² - ${n*n}`, hint: "Os termos do meio se cancelam.", solution: sup(`x² - ${n*n}`) }; } });
       }
 
-      function updateStatsSolo() {
-        state.level = Math.floor(state.xp / 100) + 1;
-        if($("gameScore")) $("gameScore").textContent = state.score;
-        if($("gameStreak")) $("gameStreak").textContent = state.streak;
-        if($("homeLevel")) $("homeLevel").textContent = state.level;
-        if($("xpText")) $("xpText").textContent = (state.xp % 100) + " / 100 XP";
-        if($("xpBar")) $("xpBar").style.width = (state.xp % 100) + "%";
-      }
+      function updateStatsSolo() { state.level = Math.floor(state.xp / 100) + 1; if($("gameScore")) $("gameScore").textContent = state.score; if($("gameStreak")) $("gameStreak").textContent = state.streak; if($("homeLevel")) $("homeLevel").textContent = state.level; }
+      function newQuestionSolo() { if (families.length === 0) buildFamilies(); const q = choice(families).generator(); state.current = q; state.totalRounds++; if($("equationMeta")) $("equationMeta").textContent = "Treino Infinito • Rodada " + state.totalRounds; if($("equationText")) $("equationText").textContent = "Desenvolva: " + q.prompt; if($("answerInput")) $("answerInput").value = ""; if($("feedback")) { $("feedback").className = "message info"; $("feedback").textContent = "Pensa no padrão e responde."; } if($("hintBox")) { $("hintBox").classList.add("hidden"); $("hintBox").textContent = "Dica: " + q.hint; } if($("solutionBox")) { $("solutionBox").classList.add("hidden"); $("solutionBox").textContent = "Solução: " + q.solution; } speak("Desenvolva: " + q.prompt); if($("answerInput")) $("answerInput").focus(); }
+      function checkAnswerSolo() { if (!state.current) return; const input = $("answerInput").value.trim(); if (!input) { if($("feedback")) { $("feedback").className = "message error"; $("feedback").textContent = "Digite uma resposta primeiro."; } return; } const ok = window.answerIsCorrect(input, state.current.answer); if (ok) { state.correct++; state.streak++; state.score += 10 + state.streak * 2; state.xp += 15; if($("feedback")) { $("feedback").className = "message ok"; $("feedback").textContent = "Boa! Resposta correta: " + state.current.answer; } speak("Resposta correta"); salvarPontos(state.player.name, 10); } else { state.wrong++; state.streak = 0; state.score = Math.max(0, state.score - 3); state.xp += 4; if($("feedback")) { $("feedback").className = "message error"; $("feedback").textContent = "Quase. Correta: " + state.current.answer; } speak("Resposta incorreta"); } updateStatsSolo(); }
+      function startTimer() { if (!state.allowTimer || state.timerInterval) return; state.timerInterval = setInterval(() => { state.timerSeconds++; const m = String(Math.floor(state.timerSeconds / 60)).padStart(2, "0"); const s = String(state.timerSeconds % 60).padStart(2, "0"); if($("gameTimer")) $("gameTimer").textContent = m + ":" + s; }, 1000); }
 
-      function newQuestionSolo() {
-        if (families.length === 0) buildFamilies();
-        const q = choice(families).generator();
-        state.current = q;
-        state.totalRounds++;
-        
-        if($("equationMeta")) $("equationMeta").textContent = "Treino Infinito • Rodada " + state.totalRounds;
-        if($("equationText")) $("equationText").textContent = "Desenvolva: " + q.prompt;
-        if($("answerInput")) $("answerInput").value = "";
-        if($("feedback")) { $("feedback").className = "message info"; $("feedback").textContent = "Pensa no padrão e responde."; }
-        if($("hintBox")) { $("hintBox").classList.add("hidden"); $("hintBox").textContent = "Dica: " + q.hint; }
-        if($("solutionBox")) { $("solutionBox").classList.add("hidden"); $("solutionBox").textContent = "Solução: " + q.solution; }
-        
-        speak("Desenvolva: " + q.prompt);
-        if($("answerInput")) $("answerInput").focus();
-      }
-
-      function checkAnswerSolo() {
-        if (!state.current) return;
-        const input = $("answerInput").value.trim();
-        if (!input) {
-          if($("feedback")) { $("feedback").className = "message error"; $("feedback").textContent = "Digite uma resposta primeiro."; }
-          return;
-        }
-        const ok = answerIsCorrect(input, state.current.answer);
-        if (ok) {
-          state.correct++; state.streak++; state.score += 10 + state.streak * 2; state.xp += 15;
-          if($("feedback")) { $("feedback").className = "message ok"; $("feedback").textContent = "Boa! Resposta correta: " + state.current.answer; }
-          speak("Resposta correta"); salvarPontos(state.player.name, 10);
-        } else {
-          state.wrong++; state.streak = 0; state.score = Math.max(0, state.score - 3); state.xp += 4;
-          if($("feedback")) { $("feedback").className = "message error"; $("feedback").textContent = "Quase. Correta: " + state.current.answer; }
-          speak("Resposta incorreta");
-        }
-        updateStatsSolo();
-      }
-
-      function startTimer() {
-        if (!state.allowTimer || state.timerInterval) return;
-        state.timerInterval = setInterval(() => {
-          state.timerSeconds++;
-          const m = String(Math.floor(state.timerSeconds / 60)).padStart(2, "0");
-          const s = String(state.timerSeconds % 60).padStart(2, "0");
-          if($("gameTimer")) $("gameTimer").textContent = m + ":" + s;
-        }, 1000);
-      }
-
-      // ================== SOCKET.IO (MULTIPLAYER NOVO) ==================
+      // ================== MULTIPLAYER (ORIGINAL RÁPIDO) ==================
       function conectarSocket() {
         if (!socket) {
-          socket = io(API);
+          socket = io(API); // Conexão rápida original
           
-          socket.on("sala_entrou", (pin) => {
-            state.codigoSalaAtual = pin;
-            $("esperaPinTexto").textContent = `PIN: ${pin}`;
-            $("btnEstouPronto").classList.remove("disabled");
-            $("btnEstouPronto").textContent = "ESTOU PRONTO!";
-            showScreen("screenEspera");
+          socket.on("sala_entrou", (pin) => { 
+            state.codigoSalaAtual = pin; 
+            $("esperaPinTexto").textContent = `PIN: ${pin}`; 
+            $("btnEstouPronto").classList.remove("disabled"); $("btnEstouPronto").textContent = "ESTOU PRONTO!"; 
+            showScreen("screenEspera"); 
           });
-
+          
           socket.on("erro_sala", (msg) => { alert(msg); showScreen("screenHome"); });
-
-          socket.on("atualizar_lobby", (jogadores) => {
-            $("listaJogadores").innerHTML = jogadores.map(j => `
-              <div class="lobby-player ${j.pronto ? 'pronto' : ''}">
-                <img src="${getCharacterImagePath(j.personagem)}">
-                <strong>${j.username}</strong>
-                <small>${j.pronto ? 'Pronto ✅' : 'Aguardando...'}</small>
-              </div>
-            `).join("");
+          
+          socket.on("atualizar_lobby", (jogadores) => { 
+            $("listaJogadores").innerHTML = jogadores.map(j => `<div class="lobby-player ${j.pronto ? 'pronto' : ''}"><img src="${getCharacterImagePath(j.personagem)}"><strong>${j.username}</strong><small>${j.pronto ? 'Pronto ✅' : 'Aguardando...'}</small></div>`).join(""); 
           });
 
+          // RECEBENDO A QUESTÃO COM OPÇÕES A, B, C, D, E
           socket.on("nova_questao", (dados) => {
             state.mpRespondido = false;
             
-            // Reseta a UI da questão multiplayer
-            $("quizFeedback").classList.add("hidden");
-            $("quizFeedback").style.backgroundColor = "var(--surface)";
-            $("quizFeedback").style.borderColor = "var(--line)";
+            if($("quizFeedback")) {
+              $("quizFeedback").classList.add("hidden");
+              $("quizFeedback").style.backgroundColor = "var(--surface)";
+              $("quizFeedback").style.borderColor = "var(--line)";
+              $("quizFeedbackTexto").style.color = "var(--text)";
+            }
             
-            $("mpHintBox").classList.add("hidden");
-            $("mpSolutionBox").classList.add("hidden");
-            $("mpHintBox").textContent = "Dica: " + dados.dica;
-            $("mpSolutionBox").textContent = "Solução: " + dados.solucao;
-            
-            $("mpAnswerInput").value = "";
-            $("mpAnswerInput").disabled = false;
-            $("btnMpCheck").classList.remove("disabled");
-
-            $("quizQuestaoNumero").textContent = `Questão ${dados.numero}/${dados.total}`;
+            const total = dados.total || 10;
+            $("quizQuestaoNumero").textContent = `Questão ${dados.numero}/${total}`;
             $("quizPergunta").textContent = dados.pergunta;
             
             speak(dados.pergunta);
-            
+
+            // Cria os botões das alternativas
+            const letras = ['A', 'B', 'C', 'D', 'E'];
+            $("quizOpcoesBox").innerHTML = dados.opcoes.map((op, i) => `
+              <button class="quiz-option" onclick="enviarRespostaMP(${i}, this)">
+                <span class="letter">${letras[i]}</span>
+                <span style="flex:1">${op}</span>
+              </button>
+            `).join("");
+
             showScreen("screenQuizAoVivo");
-            $("mpAnswerInput").focus();
           });
 
-          socket.on("tempo_atualizado", (tempoRestante) => {
-            const min = Math.floor(tempoRestante / 60); const seg = tempoRestante % 60;
-            $("quizTempoTexto").textContent = `${min}:${seg.toString().padStart(2, '0')}`;
-            const pct = (tempoRestante / 150) * 100;
-            $("quizTempoBarra").style.width = `${pct}%`;
-            $("quizTempoBarra").className = pct < 30 ? "timer-fill danger" : (pct < 60 ? "timer-fill warning" : "timer-fill");
+          socket.on("tempo_atualizado", (tempoRestante) => { 
+            const min = Math.floor(tempoRestante / 60); const seg = tempoRestante % 60; 
+            $("quizTempoTexto").textContent = `${min}:${seg.toString().padStart(2, '0')}`; 
+            const pct = (tempoRestante / 150) * 100; 
+            $("quizTempoBarra").style.width = `${pct}%`; 
+            $("quizTempoBarra").className = pct < 30 ? "timer-fill danger" : (pct < 60 ? "timer-fill warning" : "timer-fill"); 
           });
-
+          
           socket.on("fim_tempo", (dados) => {
-            $("mpAnswerInput").disabled = true;
-            $("btnMpCheck").classList.add("disabled");
+            const botoes = $$(".quiz-option");
+            const btnCerto = botoes[dados.correta];
+            const letras = ['A', 'B', 'C', 'D', 'E'];
             
-            const box = $("quizFeedback"), txt = $("quizFeedbackTexto");
-            box.classList.remove("hidden");
+            if(btnCerto) btnCerto.classList.add("correct");
+            botoes.forEach(b => b.classList.add("disabled"));
             
-            if (!state.mpRespondido) {
-              box.style.borderColor = "var(--seduc-yellow)"; box.style.backgroundColor = "#fffbeb"; txt.style.color = "#b45309";
-              txt.innerHTML = "⏰ TEMPO ESGOTADO!<br><small style='font-size:0.9rem; font-weight:normal;'>A resposta era: " + dados.correta + "</small>";
-            } else {
-              const chute = $("mpAnswerInput").value.trim();
-              const acertou = window.answerIsCorrect(chute, dados.correta);
-              
-              if (acertou) {
-                box.style.borderColor = "var(--green)"; box.style.backgroundColor = "#dcfce7"; txt.style.color = "#166534";
-                txt.innerHTML = "🎉 VOCÊ ACERTOU!";
+            const feedbackBox = $("quizFeedback");
+            const feedbackTexto = $("quizFeedbackTexto");
+            
+            if(feedbackBox && feedbackTexto) {
+              feedbackBox.classList.remove("hidden");
+              if (!state.mpRespondido) {
+                feedbackBox.style.borderColor = "var(--seduc-yellow)"; feedbackBox.style.backgroundColor = "#fffbeb"; feedbackTexto.style.color = "#b45309";
+                feedbackTexto.innerHTML = "⏰ TEMPO ESGOTADO!";
               } else {
-                box.style.borderColor = "var(--red)"; box.style.backgroundColor = "#fee2e2"; txt.style.color = "#991b1b";
-                txt.innerHTML = "😢 VOCÊ ERROU!<br><small style='font-size:0.9rem; font-weight:normal;'>A resposta certa era: " + dados.correta + "</small>";
+                const meuChute = botoes.findIndex(b => b.classList.contains("selected"));
+                if (meuChute === dados.correta) {
+                  feedbackBox.style.borderColor = "var(--green)"; feedbackBox.style.backgroundColor = "#dcfce7"; feedbackTexto.style.color = "#166534";
+                  feedbackTexto.innerHTML = "🎉 VOCÊ ACERTOU!";
+                } else {
+                  if(botoes[meuChute]) botoes[meuChute].classList.add("wrong");
+                  feedbackBox.style.borderColor = "var(--red)"; feedbackBox.style.backgroundColor = "#fee2e2"; feedbackTexto.style.color = "#991b1b";
+                  feedbackTexto.innerHTML = "😢 VOCÊ ERROU!";
+                }
               }
             }
           });
 
-          socket.on("mostrar_podio", (ranking) => {
-            const classes = ["first", "second", "third"]; const medalhas = ["🥇", "🥈", "🥉"];
-            $("podioLista").innerHTML = ranking.slice(0, 3).map((j, i) => `
-              <div class="podium-card ${classes[i] || ''}">
-                <div class="podium-rank">${medalhas[i] || (i+1+'º')}</div>
-                <img src="${getCharacterImagePath(j.personagem)}" style="width:50px; border-radius:12px;">
-                <div style="flex:1">
-                  <strong style="display:block; font-size:1.1rem">${j.username}</strong>
-                  <span class="muted">${j.pontos} pontos</span>
-                </div>
-              </div>
-            `).join("");
-            showScreen("screenPodio");
-            state.codigoSalaAtual = null;
-          });
+          socket.on("mostrar_podio", (ranking) => { const classes = ["first", "second", "third"]; const medalhas = ["🥇", "🥈", "🥉"]; $("podioLista").innerHTML = ranking.slice(0, 3).map((j, i) => `<div class="podium-card ${classes[i] || ''}"><div class="podium-rank">${medalhas[i] || (i+1+'º')}</div><img src="${getCharacterImagePath(j.personagem)}" style="width:50px; border-radius:12px;"><div style="flex:1"><strong style="display:block; font-size:1.1rem">${j.username}</strong><span class="muted">${j.pontos} pontos</span></div></div>`).join(""); showScreen("screenPodio"); state.codigoSalaAtual = null; });
         }
       }
 
-      // ================== LOGICA DAS CALCULADORAS ==================
-      $("btnCalcPN").addEventListener("click", () => {
-        const a = $("pnA").value.trim() || "x";
-        const b = parseInt($("pnB").value) || 0;
-        const sinal = $("pnSinal").value;
-        const resultBox = $("pnResultado");
-        
-        let aQuad = (a === "x") ? "x²" : `(${a})²`;
-        let meio = `${2 * b}${a}`;
-        let bQuad = b * b;
-        
-        resultBox.textContent = `${aQuad} ${sinal} ${meio} + ${bQuad}`;
-      });
+      window.enviarRespostaMP = function(indice, btnElement) {
+        if(state.mpRespondido) return;
+        state.mpRespondido = true;
+        $$(".quiz-option").forEach(b => b.classList.add("disabled"));
+        btnElement.classList.add("selected");
+        $("quizFeedback").classList.remove("hidden");
+        $("quizFeedbackTexto").innerHTML = "Resposta enviada!<br><small style='font-size:0.9rem;'>Aguardando outros...</small>";
+        socket.emit("enviar_resposta", indice);
+      }
 
-      $("btnCalcFra").addEventListener("click", () => {
-        const n1 = parseInt($("f1Num").value)||0, d1 = parseInt($("f1Den").value)||1;
-        const n2 = parseInt($("f2Num").value)||0, d2 = parseInt($("f2Den").value)||1;
-        const op = $("fSinal").value;
-        let rn = 0, rd = 1;
-        
-        if (op === "+") { rn = (n1*d2) + (n2*d1); rd = d1*d2; }
-        if (op === "-") { rn = (n1*d2) - (n2*d1); rd = d1*d2; }
-        if (op === "*") { rn = n1*n2; rd = d1*d2; }
-        if (op === "/") { rn = n1*d2; rd = d1*n2; }
-        
-        $("fResultado").textContent = `${rn} / ${rd}`;
-      });
+      // CALCULADORAS
+      $("btnCalcPN").addEventListener("click", () => { const a = $("pnA").value.trim() || "x"; const b = parseInt($("pnB").value) || 0; const sinal = $("pnSinal").value; $("pnResultado").textContent = `${a === "x" ? "x²" : `(${a})²`} ${sinal} ${2 * b}${a} + ${b * b}`; });
+      $("btnCalcFra").addEventListener("click", () => { const n1 = parseInt($("f1Num").value)||0, d1 = parseInt($("f1Den").value)||1, n2 = parseInt($("f2Num").value)||0, d2 = parseInt($("f2Den").value)||1, op = $("fSinal").value; let rn = 0, rd = 1; if (op === "+") { rn = (n1*d2) + (n2*d1); rd = d1*d2; } if (op === "-") { rn = (n1*d2) - (n2*d1); rd = d1*d2; } if (op === "*") { rn = n1*n2; rd = d1*d2; } if (op === "/") { rn = n1*d2; rd = d1*n2; } $("fResultado").textContent = `${rn} / ${rd}`; });
 
-      // ================== INSTALAÇÃO DOS EVENTOS GERAIS ==================
+      // EVENTOS
       function addEvt(id, ev, fn) { if($(id)) $(id).addEventListener(ev, fn); }
-
       function installEvents() {
         addEvt("btnGoToRegister", "click", () => { renderCharacterGrid(); showScreen("screenProfile"); });
         addEvt("btnGoToLogin", "click", () => showScreen("screenLogin"));
-        
         addEvt("btnOpenCalculadoras", "click", () => showScreen("screenCalculadoras"));
-
-        addEvt("btnDoLogin", "click", async () => {
-          const u = $("loginName").value.trim(), p = $("loginPassword").value.trim();
-          if(!u || !p) return alert("Preencha tudo!");
-          const res = await loginUser(u, p);
-          if(res && res.success) {
-            localStorage.setItem("notaveis_user", u); localStorage.setItem("notaveis_char", res.user.personagem); checkAutoLogin();
-          } else alert(res ? res.message : "Erro.");
-        });
-
-        addEvt("btnCreateProfile", "click", async () => {
-          const u = $("playerName").value.trim(), p = $("playerPassword").value.trim(), c = state.player.characterId;
-          if(!u || !p) return alert("Preencha tudo!");
-          const res = await registerUser(u, p, c);
-          if(res && res.success) {
-            localStorage.setItem("notaveis_user", u); localStorage.setItem("notaveis_char", c); checkAutoLogin();
-          } else alert(res ? res.message : "Erro.");
-        });
-
-        addEvt("btnLogout", "click", () => {
-          if(confirm("Sair?")) { localStorage.clear(); if(socket) socket.disconnect(); location.reload(); }
-        });
-
-        // Eventos Solo
-        addEvt("btnStartGame", "click", () => { showScreen("screenGame"); startTimer(); newQuestionSolo(); });
-        addEvt("btnNew", "click", () => newQuestionSolo());
-        addEvt("btnCheck", "click", checkAnswerSolo);
-        if($("answerInput")) $("answerInput").addEventListener("keydown", (e) => { if (e.key === "Enter") checkAnswerSolo(); });
-        addEvt("btnHint", "click", () => { if(state.current && $("hintBox")) $("hintBox").classList.remove("hidden"); });
-        addEvt("btnSolution", "click", () => { if(state.current && $("solutionBox")) $("solutionBox").classList.remove("hidden"); });
-        addEvt("btnSpeak", "click", () => { if(state.current) speak("Desenvolva: " + state.current.prompt); });
-        addEvt("btnSkip", "click", () => {
-          if (!state.current) return; state.wrong++; state.streak = 0; updateStatsSolo(); newQuestionSolo();
-        });
-
-        // Eventos Multiplayer
-        addEvt("btnCriarSala", "click", () => {
-          conectarSocket();
-          socket.emit("criar_sala", { username: state.player.name, personagem: state.player.characterId });
-        });
-
-        addEvt("btnEntrarSala", "click", () => {
-          const pin = $("inputPinSala").value.trim();
-          if(!pin) return alert("Digite o PIN!");
-          conectarSocket();
-          socket.emit("entrar_sala", { pin, username: state.player.name, personagem: state.player.characterId });
-        });
-
-        addEvt("btnSairSala", "click", () => {
-          if(socket) { socket.emit("sair_sala"); socket.disconnect(); }
-          socket = null; state.codigoSalaAtual = null; showScreen("screenHome");
-        });
-
-        addEvt("btnEstouPronto", "click", () => {
-          socket.emit("marcar_pronto");
-          $("btnEstouPronto").classList.add("disabled"); $("btnEstouPronto").textContent = "Aguardando...";
-        });
+        addEvt("btnDoLogin", "click", async () => { const u = $("loginName").value.trim(), p = $("loginPassword").value.trim(); if(!u || !p) return alert("Preencha tudo!"); const res = await loginUser(u, p); if(res && res.success) { localStorage.setItem("notaveis_user", u); localStorage.setItem("notaveis_char", res.user.personagem); checkAutoLogin(); } else alert(res ? res.message : "Erro."); });
+        addEvt("btnCreateProfile", "click", async () => { const u = $("playerName").value.trim(), p = $("playerPassword").value.trim(), c = state.player.characterId; if(!u || !p) return alert("Preencha tudo!"); const res = await registerUser(u, p, c); if(res && res.success) { localStorage.setItem("notaveis_user", u); localStorage.setItem("notaveis_char", c); checkAutoLogin(); } else alert(res ? res.message : "Erro."); });
+        addEvt("btnLogout", "click", () => { if(confirm("Sair?")) { localStorage.clear(); if(socket) socket.disconnect(); location.reload(); } });
         
-        // Novos Eventos Multiplayer (Caixa de Texto)
-        addEvt("btnMpHint", "click", () => $("mpHintBox").classList.remove("hidden"));
-        addEvt("btnMpSolution", "click", () => $("mpSolutionBox").classList.remove("hidden"));
-
-        addEvt("btnMpCheck", "click", () => {
-          if(state.mpRespondido) return;
-          const chute = $("mpAnswerInput").value.trim();
-          if(!chute) return alert("Digite uma resposta!");
-          
-          state.mpRespondido = true;
-          $("mpAnswerInput").disabled = true;
-          $("btnMpCheck").classList.add("disabled");
-          
-          $("quizFeedback").classList.remove("hidden");
-          $("quizFeedbackTexto").innerHTML = "Resposta enviada!<br><small style='font-size:0.9rem; font-weight:normal;'>Aguardando outros...</small>";
-          
-          socket.emit("enviar_resposta", chute);
-        });
-
-        if($("mpAnswerInput")) $("mpAnswerInput").addEventListener("keydown", (e) => { 
-          if (e.key === "Enter") $("btnMpCheck").click(); 
-        });
-
+        addEvt("btnStartGame", "click", () => { showScreen("screenGame"); startTimer(); newQuestionSolo(); });
+        addEvt("btnNew", "click", () => newQuestionSolo()); addEvt("btnCheck", "click", checkAnswerSolo);
+        if($("answerInput")) $("answerInput").addEventListener("keydown", (e) => { if (e.key === "Enter") checkAnswerSolo(); });
+        addEvt("btnHint", "click", () => { if(state.current && $("hintBox")) $("hintBox").classList.remove("hidden"); }); 
+        addEvt("btnSolution", "click", () => { if(state.current && $("solutionBox")) $("solutionBox").classList.remove("hidden"); }); 
+        addEvt("btnSpeak", "click", () => { if(state.current) speak("Desenvolva: " + state.current.prompt); });
+        addEvt("btnSkip", "click", () => { if (!state.current) return; state.wrong++; state.streak = 0; updateStatsSolo(); newQuestionSolo(); });
+        
+        addEvt("btnCriarSala", "click", () => { conectarSocket(); socket.emit("criar_sala", { username: state.player.name, personagem: state.player.characterId }); });
+        addEvt("btnEntrarSala", "click", () => { const pin = $("inputPinSala").value.trim(); if(!pin) return alert("Digite o PIN!"); conectarSocket(); socket.emit("entrar_sala", { pin, username: state.player.name, personagem: state.player.characterId }); });
+        addEvt("btnSairSala", "click", () => { if(socket) { socket.emit("sair_sala"); socket.disconnect(); } socket = null; state.codigoSalaAtual = null; showScreen("screenHome"); });
+        addEvt("btnEstouPronto", "click", () => { socket.emit("marcar_pronto"); $("btnEstouPronto").classList.add("disabled"); $("btnEstouPronto").textContent = "Aguardando..."; });
+        
         addEvt("btnVoltarLobbyPodio", "click", () => showScreen("screenHome"));
-
-        $$(".nav-back").forEach(b => b.addEventListener("click", () => showScreen(b.dataset.target)));
+        
+        $$(".nav-back").forEach(b => b.addEventListener("click", () => showScreen(b.dataset.target))); 
         $$(".nav-btn").forEach(b => b.addEventListener("click", () => showScreen(b.dataset.target, true)));
       }
-
-      function boot() {
-        renderCharacterGrid(); installEvents(); checkAutoLogin();
-      }
-      boot();
+      function boot() { renderCharacterGrid(); installEvents(); checkAutoLogin(); } boot();
     })();
   </script>
 
-  <div vw class="enabled">
-    <div vw-access-button class="active"></div>
-    <div vw-plugin-wrapper><div class="vw-plugin-top-wrapper"></div></div>
-  </div>
-  <script src="https://vlibras.gov.br/app/vlibras-plugin.js"></script>
-  <script>new window.VLibras.Widget('https://vlibras.gov.br/app');</script>
+  <div vw class="enabled"><div vw-access-button class="active"></div><div vw-plugin-wrapper><div class="vw-plugin-top-wrapper"></div></div></div>
+  <script src="https://vlibras.gov.br/app/vlibras-plugin.js"></script><script>new window.VLibras.Widget('https://vlibras.gov.br/app');</script>
 </body>
 </html>
