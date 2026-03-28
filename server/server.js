@@ -53,10 +53,10 @@ app.post("/updateScore", (req, res) => {
 });
 
 // ==========================================
-// GERADOR DE MATEMÁTICA RÁPIDO (MÚLTIPLA ESCOLHA)
+// GERADOR DE MATEMÁTICA RÁPIDO (A, B, C, D, E)
 // ==========================================
 function gerarQuestao() {
-  const n = Math.floor(Math.random() * 9) + 1; // Número de 1 a 9
+  const n = Math.floor(Math.random() * 9) + 1; // 1 a 9
   const tipo = Math.floor(Math.random() * 3); // 0, 1 ou 2
   let pergunta, certa, erradas;
 
@@ -75,7 +75,7 @@ function gerarQuestao() {
   }
 
   let opcoes = [certa, ...erradas];
-  opcoes.sort(() => Math.random() - 0.5);
+  opcoes.sort(() => Math.random() - 0.5); // Embaralha as alternativas
   let correta = opcoes.indexOf(certa);
 
   return { pergunta: "Desenvolva: " + pergunta, opcoes, correta };
@@ -88,7 +88,7 @@ function gerar10Questoes() {
 }
 
 // ==========================================
-// SISTEMA DE SALAS (LISO, RÁPIDO E ANTI-TRAVAMENTO)
+// SISTEMA DE SALAS (LISO, RÁPIDO E BLINDADO)
 // ==========================================
 const TEMPO_POR_QUESTAO = 150;
 const salas = {};
@@ -97,38 +97,12 @@ function gerarPin() {
   return Math.floor(1000 + Math.random() * 9000).toString();
 }
 
-// NOVA FUNÇÃO: Checa de forma inteligente se a questão deve acabar
-function checarFimDeQuestao(sala) {
-  if (sala.bloqueada) return; // Se a sala já fechou a questão, ignora
-  
-  const jogadores = Object.values(sala.jogadores);
-  if (jogadores.length === 0) return; // Ninguém na sala
-  
-  // Verifica se todos os que AINDA ESTÃO CONECTADOS responderam
-  const todosResponderam = jogadores.every(j => j.respondeu);
-  
-  if (todosResponderam || sala.tempoRestante <= 0) {
-    sala.bloqueada = true; // Trava a sala pra não rodar duas vezes
-    clearInterval(sala.timer);
-    
-    const questaoCerta = sala.questoes[sala.questaoAtual].correta;
-    io.to(sala.id).emit("fim_tempo", { correta: questaoCerta });
-    
-    setTimeout(() => {
-      if (salas[sala.id]) {
-        salas[sala.id].questaoAtual++;
-        iniciarProximaQuestao(sala.id);
-      }
-    }, 4000); // 4 segundos de transição pra ver quem errou/acertou
-  }
-}
-
 function iniciarProximaQuestao(pin) {
   const sala = salas[pin];
   if (!sala) return;
 
   if (sala.timer) clearInterval(sala.timer);
-  sala.bloqueada = false;
+  sala.bloqueada = false; // TRAVA DE SEGURANÇA LIBERADA
 
   if (sala.questaoAtual >= sala.questoes.length) {
     finalizarJogo(pin);
@@ -154,7 +128,17 @@ function iniciarProximaQuestao(pin) {
     io.to(pin).emit("tempo_atualizado", sala.tempoRestante);
 
     if (sala.tempoRestante <= 0) {
-      checarFimDeQuestao(sala);
+      if (sala.bloqueada) return; // SE JÁ PULOU, IGNORA PRA NÃO TRAVAR!
+      sala.bloqueada = true;
+      
+      clearInterval(sala.timer);
+      io.to(pin).emit("fim_tempo", { correta: q.correta });
+      setTimeout(() => {
+        if (salas[pin]) {
+          salas[pin].questaoAtual++;
+          iniciarProximaQuestao(pin);
+        }
+      }, 4000); // Passa a questão após 4 segundos
     }
   }, 1000);
 }
@@ -179,6 +163,31 @@ function finalizarJogo(pin) {
 }
 
 io.on("connection", (socket) => {
+  
+  // A MÁGICA QUE SALVA O CELULAR QUE DORMIU!
+  socket.on("reentrar_sala_silencioso", (dados) => {
+    const sala = salas[dados.pin];
+    if (sala) {
+      socket.join(dados.pin); // Puxa de volta pra sala
+      const jogadorExistente = Object.values(sala.jogadores).find(j => j.username === dados.username);
+      if (jogadorExistente) {
+        const oldId = jogadorExistente.id;
+        delete sala.jogadores[oldId];
+        jogadorExistente.id = socket.id;
+        sala.jogadores[socket.id] = jogadorExistente;
+        
+        // Manda a tela do jogo pra ele não ficar travado
+        if (sala.estado === "JOGANDO") {
+           const q = sala.questoes[sala.questaoAtual];
+           socket.emit("nova_questao", { 
+             numero: sala.questaoAtual + 1, total: sala.questoes.length, 
+             pergunta: q.pergunta, opcoes: q.opcoes, tempo: sala.tempoRestante 
+           });
+        }
+      }
+    }
+  });
+
   socket.on("criar_sala", (dados) => {
     let pin = gerarPin();
     while (salas[pin]) pin = gerarPin();
@@ -220,23 +229,35 @@ io.on("connection", (socket) => {
   });
 
   socket.on("enviar_resposta", (indiceEscolhido) => {
-    let salaEncontrada = null;
-    for (let pin in salas) { if (salas[pin].jogadores[socket.id]) { salaEncontrada = salas[pin]; break; } }
-    if (!salaEncontrada || salaEncontrada.estado !== "JOGANDO") return;
+    let sala = null;
+    for (let pin in salas) { if (salas[pin].jogadores[socket.id]) { sala = salas[pin]; break; } }
+    if (!sala || sala.estado !== "JOGANDO") return;
 
-    const jogador = salaEncontrada.jogadores[socket.id];
+    const jogador = sala.jogadores[socket.id];
     if (jogador.respondeu) return;
 
     jogador.respondeu = true;
-    const questaoCerta = salaEncontrada.questoes[salaEncontrada.questaoAtual].correta;
+    const questaoCerta = sala.questoes[sala.questaoAtual].correta;
 
     if (indiceEscolhido === questaoCerta) {
-      const multiplicador = salaEncontrada.tempoRestante / TEMPO_POR_QUESTAO;
+      const multiplicador = sala.tempoRestante / TEMPO_POR_QUESTAO;
       jogador.pontos += 500 + Math.floor(500 * multiplicador);
     }
 
-    // Chama o fiscal pra ver se a questão já pode acabar
-    checarFimDeQuestao(salaEncontrada);
+    const todosResponderam = Object.values(sala.jogadores).every(j => j.respondeu);
+    if (todosResponderam) {
+      if (sala.bloqueada) return; // TRAVA DE SEGURANÇA: Impede que passe de questão duas vezes!
+      sala.bloqueada = true;
+      
+      clearInterval(sala.timer);
+      io.to(sala.id).emit("fim_tempo", { correta: questaoCerta });
+      setTimeout(() => {
+        if (salas[sala.id]) {
+          salas[sala.id].questaoAtual++;
+          iniciarProximaQuestao(sala.id);
+        }
+      }, 4000);
+    }
   });
 
   socket.on("sair_sala", () => {
@@ -246,14 +267,7 @@ io.on("connection", (socket) => {
       delete sala.jogadores[socket.id];
       socket.leave(sala.id);
       io.to(sala.id).emit("atualizar_lobby", Object.values(sala.jogadores));
-      
-      if (Object.keys(sala.jogadores).length === 0) {
-        if(sala.timer) clearInterval(sala.timer);
-        delete salas[sala.id];
-      } else if (sala.estado === "JOGANDO") {
-        // Se alguém clicar no botão de sair, checa se a questão não deveria acabar!
-        checarFimDeQuestao(sala);
-      }
+      if (Object.keys(sala.jogadores).length === 0) delete salas[sala.id];
     }
   });
 
@@ -261,19 +275,18 @@ io.on("connection", (socket) => {
     let sala = null;
     for (let pin in salas) { if (salas[pin].jogadores[socket.id]) { sala = salas[pin]; break; } }
     if (sala) {
-      delete sala.jogadores[socket.id];
-      io.to(sala.id).emit("atualizar_lobby", Object.values(sala.jogadores));
-      
-      if (Object.keys(sala.jogadores).length === 0) {
-        if(sala.timer) clearInterval(sala.timer);
-        delete salas[sala.id];
-      } else if (sala.estado === "JOGANDO") {
-        // O SEGREDO AQUI: Se a tela apagar e o cara cair da sala, o servidor libera a partida pra quem ficou na mesma hora!
-        checarFimDeQuestao(sala);
+      // Se a partida começou, o servidor NÃO DELETA o cara. Assim o celular pode reconectar invisivelmente!
+      if (sala.estado === "LOBBY") {
+        delete sala.jogadores[socket.id];
+        io.to(sala.id).emit("atualizar_lobby", Object.values(sala.jogadores));
+        if (Object.keys(sala.jogadores).length === 0) {
+          if(sala.timer) clearInterval(sala.timer);
+          delete salas[sala.id];
+        }
       }
     }
   });
 });
 
 const PORT = process.env.PORT || 3000;
-server.listen(PORT, () => console.log(`Servidor Multi Anti-Travamento na porta ${PORT} 🚀`));
+server.listen(PORT, () => console.log(`Servidor Blindado rodando na porta ${PORT} 🚀`));
