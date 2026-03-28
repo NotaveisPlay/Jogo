@@ -214,6 +214,8 @@
   <script>
     (() => {
       const API = "https://notaveis-backend.onrender.com";
+      
+      // O SEGREDO DA VELOCIDADE VOLTOU AQUI (CONEXÃO PADRÃO)
       let socket = null;
 
       async function registerUser(username, password, personagem) { try { const res = await fetch(API + "/register", { method: "POST", headers: {"Content-Type": "application/json"}, body: JSON.stringify({ username, password, personagem }) }); return await res.json(); } catch (error) { return { success: false, message: "Erro no servidor." }; } }
@@ -222,7 +224,6 @@
 
       const $ = (id) => document.getElementById(id); const $$ = (sel) => [...document.querySelectorAll(sel)];
 
-      // TODOS OS 15 PERSONAGENS AQUI
       const characters = [ { id: "einstein", name: "Einstein" }, { id: "neymar", name: "Neymar" }, { id: "messi", name: "Messi" }, { id: "cr7", name: "CR7" }, { id: "tesla", name: "Tesla" }, { id: "taylor", name: "Taylor" }, { id: "eilish", name: "Eilish" }, { id: "anitta", name: "Anitta" }, { id: "braga", name: "Braga" }, { id: "pericles", name: "Péricles" }, { id: "alok", name: "Alok" }, { id: "sandler", name: "Sandler" }, { id: "will", name: "Will" }, { id: "luthor", name: "Luthor" }, { id: "mitski", name: "Mitski" } ];
       const ASSET_ROOT = "assets/personagens"; const FALLBACK_IMAGE = ASSET_ROOT + "/einstein/base.png";
       const state = { player: { name: "", characterId: "einstein", imagePath: FALLBACK_IMAGE }, currentScreen: "screenLogin", voiceEnabled: true, allowTimer: true, timerSeconds: 0, timerInterval: null, current: null, score: 0, bestScore: 0, correct: 0, wrong: 0, streak: 0, xp: 0, level: 1, totalRounds: 0, mpRespondido: false, codigoSalaAtual: null };
@@ -233,26 +234,29 @@
       function renderCharacterGrid() { const grid = $("characterGrid"); if (!grid) return; grid.innerHTML = characters.map(c => `<div class="character-card ${c.id === state.player.characterId ? 'selected' : ''}" data-id="${c.id}"><img src="${getCharacterImagePath(c.id)}" onerror="this.src='${FALLBACK_IMAGE}'"><span>${c.name}</span></div>`).join(""); $$(".character-card").forEach(card => { card.addEventListener("click", () => { state.player.characterId = card.dataset.id; renderCharacterGrid(); }); }); }
       function checkAutoLogin() { const savedUser = localStorage.getItem("notaveis_user"); const savedChar = localStorage.getItem("notaveis_char"); if (savedUser && savedChar) { state.player.name = savedUser; state.player.characterId = savedChar; if($("homeName")) $("homeName").textContent = savedUser; if($("homeAvatarImg")) $("homeAvatarImg").src = getCharacterImagePath(savedChar); if($("profileAvatarImg")) $("profileAvatarImg").src = getCharacterImagePath(savedChar); if($("profileName")) $("profileName").textContent = savedUser; showScreen("screenHome"); } else { showScreen("screenLogin"); } }
 
-      // LEITOR DE VOZ (LÊ MATEMÁTICA)
+      // LEITOR DE VOZ
       function speak(text) {
         if (!state.voiceEnabled || !("speechSynthesis" in window)) return; window.speechSynthesis.cancel();
         let textoFalado = text.replace(/-/g, " menos ").replace(/−/g, " menos ").replace(/\(/g, " abre parênteses, ").replace(/\)/g, " fecha parênteses, ").replace(/²/g, " ao quadrado ").replace(/\+/g, " mais ").replace(/x/gi, " xis ").replace(/=/g, " igual a ");
         const u = new SpeechSynthesisUtterance(textoFalado); u.lang = "pt-BR"; u.rate = 0.9; window.speechSynthesis.speak(u);
       }
 
-      // MOTOR MATEMÁTICO SOLO
+      // MOTOR MATEMÁTICO DO CLIENTE
       function randInt(min, max) { return Math.floor(Math.random() * (max - min + 1)) + min; } function choice(arr) { return arr[randInt(0, arr.length - 1)]; } function sup(str) { return str.replace(/\^2/g, "²"); }
-      function tokenize(expr) { const cleaned = expr.toLowerCase().replace(/\s+/g, "").replace(/²/g, "^2").replace(/−/g, "-").replace(/\*/g, "").replace(/([a-z])(\d)/g, "$1*$2").replace(/(\d)([a-z])/g, "$1*$2").replace(/([a-z])([a-z])/g, "$1*$2"); const out = []; let i = 0; while (i < cleaned.length) { const ch = cleaned[i]; if ("+-()^*".includes(ch)) { out.push(ch); i++; continue; } if (/\d/.test(ch)) { let n = ch; i++; while (i < cleaned.length && /\d/.test(cleaned[i])) n += cleaned[i++]; out.push(n); continue; } if (/[a-z]/.test(ch)) { out.push(ch); i++; continue; } i++; } return out; }
-      function addPolys(a, b, factor = 1) { const r = { ...a }; for (const k in b) r[k] = (r[k] || 0) + factor * b[k]; Object.keys(r).forEach(k => { if (r[k] === 0) delete r[k]; }); return r; }
-      function multiplyPolys(a, b) { const result = {}; for (const k1 in a) { for (const k2 in b) { const c = a[k1] * b[k2]; const map = {}; (k1 + "," + k2).split(",").filter(Boolean).forEach(part => { const [v,p] = part.split("^"); map[v] = (map[v] || 0) + Number(p); }); const key = Object.entries(map).filter(([,p]) => p !== 0).sort((x,y) => x[0].localeCompare(y[0])).map(([v,p]) => v + "^" + p).join(","); result[key] = (result[key] || 0) + c; } } return result; }
-      function parsePolynomial(expr) { const tokens = tokenize(expr); let i = 0; function parseExpression() { let left = parseTerm(); while (i < tokens.length && (tokens[i] === "+" || tokens[i] === "-")) { const op = tokens[i++]; left = addPolys(left, parseTerm(), op === "+" ? 1 : -1); } return left; } function parseTerm() { let left = parseFactor(); while (i < tokens.length && tokens[i] === "*") { i++; left = multiplyPolys(left, parseFactor()); } return left; } function parseFactor() { if (tokens[i] === "+") { i++; return parseFactor(); } if (tokens[i] === "-") { i++; const f = parseFactor(); return Object.fromEntries(Object.entries(f).map(([k,v]) => [k, -v])); } let base; if (tokens[i] === "(") { i++; base = parseExpression(); if (tokens[i] === ")") i++; } else if (/^\d+$/.test(tokens[i] || "")) { base = { "": Number(tokens[i++]) }; } else if (/^[a-z]$/.test(tokens[i] || "")) { const v = tokens[i++]; base = { [v + "^1"]: 1 }; } else { base = { "": 0 }; } if (tokens[i] === "^") { i++; const exp = Number(tokens[i++] || 1); let result = { "": 1 }; for (let k = 0; k < exp; k++) result = multiplyPolys(result, base); return result; } return base; } return parseExpression(); }
-      function canonical(poly) { return Object.entries(poly).filter(([,v]) => v !== 0).sort((a,b) => { const degA = a[0].split(",").reduce((s,p) => s + (p ? Number(p.split("^")[1]) : 0), 0); const degB = b[0].split(",").reduce((s,p) => s + (p ? Number(p.split("^")[1]) : 0), 0); if (degB !== degA) return degB - degA; return a[0].localeCompare(b[0]); }).map(([k,v]) => v + "|" + k).join(";") || "0"; }
-      window.answerIsCorrect = function(input, expected) { if (/^\d+$/.test(expected.trim())) return input.trim() === expected.trim(); try { return canonical(parsePolynomial(input)) === canonical(parsePolynomial(expected)); } catch { return false; } }
+      
+      // CHECAGEM LEVE DE RESPOSTAS NO CLIENTE (RÁPIDO)
+      function limparResposta(texto) {
+        if (!texto) return "";
+        return texto.toLowerCase().replace(/\s+/g, "").replace(/\^2/g, "²").replace(/x2/g, "x²").replace(/−/g, "-");
+      }
+      window.answerIsCorrect = function(input, expected) {
+        return limparResposta(input) === limparResposta(expected);
+      }
 
       function buildFamilies() {
-        families.push({ family: "quadradoSomaSimples", generator: () => { const n = randInt(1, 9); return { prompt: sup(`(x + ${n})^2`), answer: `x^2 + ${2*n}x + ${n*n}`, hint: "Primeiro ao quadrado, dobro do produto...", solution: sup(`x^2 + ${2*n}x + ${n*n}`) }; } });
-        families.push({ family: "quadradoDiferencaSimples", generator: () => { const n = randInt(1, 9); return { prompt: sup(`(x - ${n})^2`), answer: `x^2 - ${2*n}x + ${n*n}`, hint: "Muda o sinal do termo do meio.", solution: sup(`x^2 - ${2*n}x + ${n*n}`) }; } });
-        families.push({ family: "somaPelaDiferenca", generator: () => { const n = randInt(1, 10); return { prompt: sup(`(x + ${n})(x - ${n})`), answer: `x^2 - ${n*n}`, hint: "Os termos do meio se cancelam.", solution: sup(`x^2 - ${n*n}`) }; } });
+        families.push({ family: "quadradoSomaSimples", generator: () => { const n = randInt(1, 9); return { prompt: sup(`(x + ${n})^2`), answer: `x² + ${2*n}x + ${n*n}`, hint: "Primeiro ao quadrado, dobro do produto...", solution: sup(`x² + ${2*n}x + ${n*n}`) }; } });
+        families.push({ family: "quadradoDiferencaSimples", generator: () => { const n = randInt(1, 9); return { prompt: sup(`(x - ${n})^2`), answer: `x² - ${2*n}x + ${n*n}`, hint: "Muda o sinal do termo do meio.", solution: sup(`x² - ${2*n}x + ${n*n}`) }; } });
+        families.push({ family: "somaPelaDiferenca", generator: () => { const n = randInt(1, 10); return { prompt: sup(`(x + ${n})(x - ${n})`), answer: `x² - ${n*n}`, hint: "Os termos do meio se cancelam.", solution: sup(`x² - ${n*n}`) }; } });
       }
 
       function updateStatsSolo() { state.level = Math.floor(state.xp / 100) + 1; if($("gameScore")) $("gameScore").textContent = state.score; if($("gameStreak")) $("gameStreak").textContent = state.streak; if($("homeLevel")) $("homeLevel").textContent = state.level; }
@@ -260,20 +264,29 @@
       function checkAnswerSolo() { if (!state.current) return; const input = $("answerInput").value.trim(); if (!input) { if($("feedback")) { $("feedback").className = "message error"; $("feedback").textContent = "Digite uma resposta primeiro."; } return; } const ok = window.answerIsCorrect(input, state.current.answer); if (ok) { state.correct++; state.streak++; state.score += 10 + state.streak * 2; state.xp += 15; if($("feedback")) { $("feedback").className = "message ok"; $("feedback").textContent = "Boa! Resposta correta: " + state.current.answer; } speak("Resposta correta"); salvarPontos(state.player.name, 10); } else { state.wrong++; state.streak = 0; state.score = Math.max(0, state.score - 3); state.xp += 4; if($("feedback")) { $("feedback").className = "message error"; $("feedback").textContent = "Quase. Correta: " + state.current.answer; } speak("Resposta incorreta"); } updateStatsSolo(); }
       function startTimer() { if (!state.allowTimer || state.timerInterval) return; state.timerInterval = setInterval(() => { state.timerSeconds++; const m = String(Math.floor(state.timerSeconds / 60)).padStart(2, "0"); const s = String(state.timerSeconds % 60).padStart(2, "0"); if($("gameTimer")) $("gameTimer").textContent = m + ":" + s; }, 1000); }
 
-      // ================== SOCKET.IO MULTIPLAYER (VACINADO) ==================
+      // ================== SOCKET.IO MULTIPLAYER ==================
       function conectarSocket() {
         if (!socket) {
-          socket = io(API);
+          socket = io(API); // ESTA É A LINHA QUE TRAZ A VELOCIDADE DE VOLTA!
           
-          // VACINA ANTI-SONO
-          socket.on("connect", () => {
-            if (state.codigoSalaAtual && state.player.name) {
-              socket.emit("reentrar_sala_silencioso", { pin: state.codigoSalaAtual, username: state.player.name, personagem: state.player.characterId });
-            }
+          socket.on("sala_entrou", (pin) => { 
+            state.codigoSalaAtual = pin; 
+            $("esperaPinTexto").textContent = `PIN: ${pin}`; 
+            
+            // Tira o "Carregando..." do botão
+            if($("btnCriarSala")) { $("btnCriarSala").textContent = "🎮 Criar Nova Sala"; $("btnCriarSala").classList.remove("disabled"); }
+            if($("btnEntrarSala")) { $("btnEntrarSala").textContent = "Entrar"; $("btnEntrarSala").classList.remove("disabled"); }
+            
+            $("btnEstouPronto").classList.remove("disabled"); $("btnEstouPronto").textContent = "ESTOU PRONTO!"; 
+            showScreen("screenEspera"); 
           });
-
-          socket.on("sala_entrou", (pin) => { state.codigoSalaAtual = pin; $("esperaPinTexto").textContent = `PIN: ${pin}`; $("btnEstouPronto").classList.remove("disabled"); $("btnEstouPronto").textContent = "ESTOU PRONTO!"; showScreen("screenEspera"); });
-          socket.on("erro_sala", (msg) => { alert(msg); showScreen("screenHome"); });
+          
+          socket.on("erro_sala", (msg) => { 
+            alert(msg); 
+            if($("btnEntrarSala")) { $("btnEntrarSala").textContent = "Entrar"; $("btnEntrarSala").classList.remove("disabled"); }
+            showScreen("screenHome"); 
+          });
+          
           socket.on("atualizar_lobby", (jogadores) => { $("listaJogadores").innerHTML = jogadores.map(j => `<div class="lobby-player ${j.pronto ? 'pronto' : ''}"><img src="${getCharacterImagePath(j.personagem)}"><strong>${j.username}</strong><small>${j.pronto ? 'Pronto ✅' : 'Aguardando...'}</small></div>`).join(""); });
 
           socket.on("nova_questao", (dados) => {
@@ -312,12 +325,13 @@
       $("btnCalcPN").addEventListener("click", () => { const a = $("pnA").value.trim() || "x"; const b = parseInt($("pnB").value) || 0; const sinal = $("pnSinal").value; $("pnResultado").textContent = `${a === "x" ? "x²" : `(${a})²`} ${sinal} ${2 * b}${a} + ${b * b}`; });
       $("btnCalcFra").addEventListener("click", () => { const n1 = parseInt($("f1Num").value)||0, d1 = parseInt($("f1Den").value)||1, n2 = parseInt($("f2Num").value)||0, d2 = parseInt($("f2Den").value)||1, op = $("fSinal").value; let rn = 0, rd = 1; if (op === "+") { rn = (n1*d2) + (n2*d1); rd = d1*d2; } if (op === "-") { rn = (n1*d2) - (n2*d1); rd = d1*d2; } if (op === "*") { rn = n1*n2; rd = d1*d2; } if (op === "/") { rn = n1*d2; rd = d1*n2; } $("fResultado").textContent = `${rn} / ${rd}`; });
 
-      // EVENTOS DA PÁGINA
+      // EVENTOS
       function addEvt(id, ev, fn) { if($(id)) $(id).addEventListener(ev, fn); }
       function installEvents() {
         addEvt("btnGoToRegister", "click", () => { renderCharacterGrid(); showScreen("screenProfile"); });
         addEvt("btnGoToLogin", "click", () => showScreen("screenLogin"));
         addEvt("btnOpenCalculadoras", "click", () => showScreen("screenCalculadoras"));
+        
         addEvt("btnDoLogin", "click", async () => { const u = $("loginName").value.trim(), p = $("loginPassword").value.trim(); if(!u || !p) return alert("Preencha tudo!"); const res = await loginUser(u, p); if(res && res.success) { localStorage.setItem("notaveis_user", u); localStorage.setItem("notaveis_char", res.user.personagem); checkAutoLogin(); } else alert(res ? res.message : "Erro."); });
         addEvt("btnCreateProfile", "click", async () => { const u = $("playerName").value.trim(), p = $("playerPassword").value.trim(), c = state.player.characterId; if(!u || !p) return alert("Preencha tudo!"); const res = await registerUser(u, p, c); if(res && res.success) { localStorage.setItem("notaveis_user", u); localStorage.setItem("notaveis_char", c); checkAutoLogin(); } else alert(res ? res.message : "Erro."); });
         addEvt("btnLogout", "click", () => { if(confirm("Sair?")) { localStorage.clear(); if(socket) socket.disconnect(); location.reload(); } });
@@ -330,8 +344,31 @@
         addEvt("btnSpeak", "click", () => { if(state.current) speak("Desenvolva: " + state.current.prompt); });
         addEvt("btnSkip", "click", () => { if (!state.current) return; state.wrong++; state.streak = 0; updateStatsSolo(); newQuestionSolo(); });
         
-        addEvt("btnCriarSala", "click", () => { conectarSocket(); socket.emit("criar_sala", { username: state.player.name, personagem: state.player.characterId }); });
-        addEvt("btnEntrarSala", "click", () => { const pin = $("inputPinSala").value.trim(); if(!pin) return alert("Digite o PIN!"); conectarSocket(); socket.emit("entrar_sala", { pin, username: state.player.name, personagem: state.player.characterId }); });
+        addEvt("btnCriarSala", "click", () => { 
+          // Animação de carregamento
+          $("btnCriarSala").textContent = "⏳ Conectando..."; 
+          $("btnCriarSala").classList.add("disabled"); 
+          
+          conectarSocket(); 
+          socket.emit("criar_sala", { username: state.player.name, personagem: state.player.characterId }); 
+          
+          setTimeout(() => { if($("btnCriarSala")) { $("btnCriarSala").textContent = "🎮 Criar Nova Sala"; $("btnCriarSala").classList.remove("disabled"); } }, 30000);
+        });
+        
+        addEvt("btnEntrarSala", "click", () => { 
+          const pin = $("inputPinSala").value.trim(); 
+          if(!pin) return alert("Digite o PIN!"); 
+          
+          // Animação de carregamento
+          $("btnEntrarSala").textContent = "⏳..."; 
+          $("btnEntrarSala").classList.add("disabled"); 
+
+          conectarSocket(); 
+          socket.emit("entrar_sala", { pin, username: state.player.name, personagem: state.player.characterId }); 
+          
+          setTimeout(() => { if($("btnEntrarSala")) { $("btnEntrarSala").textContent = "Entrar"; $("btnEntrarSala").classList.remove("disabled"); } }, 30000);
+        });
+        
         addEvt("btnSairSala", "click", () => { if(socket) { socket.emit("sair_sala"); socket.disconnect(); } socket = null; state.codigoSalaAtual = null; showScreen("screenHome"); });
         addEvt("btnEstouPronto", "click", () => { socket.emit("marcar_pronto"); $("btnEstouPronto").classList.add("disabled"); $("btnEstouPronto").textContent = "Aguardando..."; });
         
@@ -349,6 +386,7 @@
         $$(".nav-back").forEach(b => b.addEventListener("click", () => showScreen(b.dataset.target))); 
         $$(".nav-btn").forEach(b => b.addEventListener("click", () => showScreen(b.dataset.target, true)));
       }
+
       function boot() { renderCharacterGrid(); installEvents(); checkAutoLogin(); } boot();
     })();
   </script>
