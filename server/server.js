@@ -29,7 +29,6 @@ db.serialize(() => {
   `);
 });
 
-// Rotas HTTP
 app.post("/register", (req, res) => {
   const { username, password, personagem } = req.body;
   db.run("INSERT INTO users (username, password, personagem) VALUES (?, ?, ?)", [username, password, personagem], function (err) {
@@ -54,140 +53,56 @@ app.post("/updateScore", (req, res) => {
 });
 
 // ==========================================
-// MOTOR MATEMÁTICO NO BACKEND
+// GERADOR DE MATEMÁTICA RÁPIDO (MÚLTIPLA ESCOLHA)
 // ==========================================
-function randInt(min, max) { return Math.floor(Math.random() * (max - min + 1)) + min; }
-function choice(arr) { return arr[randInt(0, arr.length - 1)]; }
-function sup(str) { return str.replace(/\^2/g, "²"); }
+function gerarQuestao() {
+  const n = Math.floor(Math.random() * 9) + 1; // Número de 1 a 9
+  const tipo = Math.floor(Math.random() * 3); // 0, 1 ou 2
+  let pergunta, certa, erradas;
 
-function tokenize(expr) {
-  const cleaned = expr.toLowerCase().replace(/\s+/g, "").replace(/²/g, "^2").replace(/−/g, "-").replace(/\*/g, "")
-    .replace(/([a-z])(\d)/g, "$1*$2").replace(/(\d)([a-z])/g, "$1*$2").replace(/([a-z])([a-z])/g, "$1*$2");
-  const out = []; let i = 0;
-  while (i < cleaned.length) {
-    const ch = cleaned[i];
-    if ("+-()^*".includes(ch)) { out.push(ch); i++; continue; }
-    if (/\d/.test(ch)) { let n = ch; i++; while (i < cleaned.length && /\d/.test(cleaned[i])) n += cleaned[i++]; out.push(n); continue; }
-    if (/[a-z]/.test(ch)) { out.push(ch); i++; continue; }
-    i++;
+  if (tipo === 0) {
+    pergunta = `(x + ${n})²`;
+    certa = `x² + ${2 * n}x + ${n * n}`;
+    erradas = [`x² + ${n * n}`, `x² - ${2 * n}x + ${n * n}`, `x² + ${n}x + ${n * n}`, `x² + ${2 * n}x - ${n * n}`];
+  } else if (tipo === 1) {
+    pergunta = `(x - ${n})²`;
+    certa = `x² - ${2 * n}x + ${n * n}`;
+    erradas = [`x² - ${n * n}`, `x² + ${2 * n}x + ${n * n}`, `x² - ${n}x + ${n * n}`, `x² - ${2 * n}x - ${n * n}`];
+  } else {
+    pergunta = `(x + ${n})(x - ${n})`;
+    certa = `x² - ${n * n}`;
+    erradas = [`x² + ${n * n}`, `x² - ${2 * n}x - ${n * n}`, `x² - ${n}`, `x² + ${2 * n}x + ${n * n}`];
   }
-  return out;
+
+  // Embaralha as opções
+  let opcoes = [certa, ...erradas];
+  opcoes.sort(() => Math.random() - 0.5);
+  let correta = opcoes.indexOf(certa);
+
+  return { pergunta: "Desenvolva: " + pergunta, opcoes, correta };
 }
-
-function addPolys(a, b, factor = 1) {
-  const r = { ...a };
-  for (const k in b) r[k] = (r[k] || 0) + factor * b[k];
-  Object.keys(r).forEach(k => { if (r[k] === 0) delete r[k]; });
-  return r;
-}
-
-function multiplyPolys(a, b) {
-  const result = {};
-  for (const k1 in a) {
-    for (const k2 in b) {
-      const c = a[k1] * b[k2];
-      const map = {};
-      (k1 + "," + k2).split(",").filter(Boolean).forEach(part => {
-        const [v,p] = part.split("^"); map[v] = (map[v] || 0) + Number(p);
-      });
-      const key = Object.entries(map).filter(([,p]) => p !== 0).sort((x,y) => x[0].localeCompare(y[0])).map(([v,p]) => v + "^" + p).join(",");
-      result[key] = (result[key] || 0) + c;
-    }
-  }
-  return result;
-}
-
-function parsePolynomial(expr) {
-  const tokens = tokenize(expr); let i = 0;
-  function parseExpression() {
-    let left = parseTerm();
-    while (i < tokens.length && (tokens[i] === "+" || tokens[i] === "-")) {
-      const op = tokens[i++]; left = addPolys(left, parseTerm(), op === "+" ? 1 : -1);
-    }
-    return left;
-  }
-  function parseTerm() {
-    let left = parseFactor();
-    while (i < tokens.length && tokens[i] === "*") { i++; left = multiplyPolys(left, parseFactor()); }
-    return left;
-  }
-  function parseFactor() {
-    if (tokens[i] === "+") { i++; return parseFactor(); }
-    if (tokens[i] === "-") { i++; const f = parseFactor(); return Object.fromEntries(Object.entries(f).map(([k,v]) => [k, -v])); }
-    let base;
-    if (tokens[i] === "(") { i++; base = parseExpression(); if (tokens[i] === ")") i++; }
-    else if (/^\d+$/.test(tokens[i] || "")) { base = { "": Number(tokens[i++]) }; }
-    else if (/^[a-z]$/.test(tokens[i] || "")) { const v = tokens[i++]; base = { [v + "^1"]: 1 }; }
-    else { base = { "": 0 }; }
-    if (tokens[i] === "^") {
-      i++; const exp = Number(tokens[i++] || 1); let result = { "": 1 };
-      for (let k = 0; k < exp; k++) result = multiplyPolys(result, base);
-      return result;
-    }
-    return base;
-  }
-  return parseExpression();
-}
-
-function canonical(poly) {
-  return Object.entries(poly).filter(([,v]) => v !== 0).sort((a,b) => {
-    const degA = a[0].split(",").reduce((s,p) => s + (p ? Number(p.split("^")[1]) : 0), 0);
-    const degB = b[0].split(",").reduce((s,p) => s + (p ? Number(p.split("^")[1]) : 0), 0);
-    if (degB !== degA) return degB - degA;
-    return a[0].localeCompare(b[0]);
-  }).map(([k,v]) => v + "|" + k).join(";") || "0";
-}
-
-function equivalent(a, b) {
-  try { return canonical(parsePolynomial(a)) === canonical(parsePolynomial(b)); }
-  catch { return false; }
-}
-
-function answerIsCorrect(input, expected) {
-  if (/^\d+$/.test(expected.trim())) return input.trim() === expected.trim();
-  return equivalent(input, expected);
-}
-
-const families = [];
-families.push({
-  family: "quadradoSomaSimples",
-  generator: () => {
-    const n = randInt(1, 9);
-    return { prompt: sup(`(x + ${n})^2`), answer: `x^2 + ${2*n}x + ${n*n}`, hint: "Primeiro ao quadrado, dobro do produto...", solution: sup(`x^2 + ${2*n}x + ${n*n}`) };
-  }
-});
-families.push({
-  family: "quadradoDiferencaSimples",
-  generator: () => {
-    const n = randInt(1, 9);
-    return { prompt: sup(`(x - ${n})^2`), answer: `x^2 - ${2*n}x + ${n*n}`, hint: "Muda o sinal do termo do meio.", solution: sup(`x^2 - ${2*n}x + ${n*n}`) };
-  }
-});
-families.push({
-  family: "somaPelaDiferenca",
-  generator: () => {
-    const n = randInt(1, 10);
-    return { prompt: sup(`(x + ${n})(x - ${n})`), answer: `x^2 - ${n*n}`, hint: "Os termos do meio se cancelam.", solution: sup(`x^2 - ${n*n}`) };
-  }
-});
 
 function gerar10Questoes() {
   let q = [];
-  for (let i = 0; i < 10; i++) q.push(choice(families).generator());
+  for (let i = 0; i < 10; i++) q.push(gerarQuestao());
   return q;
 }
 
 // ==========================================
-// SISTEMA DE SALAS MULTIPLAYER
+// SISTEMA DE SALAS (LISO E RÁPIDO COMO O ORIGINAL)
 // ==========================================
-const TEMPO_POR_QUESTAO = 150; // 2 minutos e meio
+const TEMPO_POR_QUESTAO = 150;
 const salas = {};
 
-function gerarPin() { return Math.floor(1000 + Math.random() * 9000).toString(); }
+function gerarPin() {
+  return Math.floor(1000 + Math.random() * 9000).toString();
+}
 
 function iniciarProximaQuestao(pin) {
   const sala = salas[pin];
   if (!sala) return;
+
+  if (sala.timer) clearInterval(sala.timer);
 
   if (sala.questaoAtual >= sala.questoes.length) {
     finalizarJogo(pin);
@@ -200,12 +115,12 @@ function iniciarProximaQuestao(pin) {
 
   const q = sala.questoes[sala.questaoAtual];
   
+  // Manda para o HTML as opções (A, B, C, D, E) e o total (10)
   io.to(pin).emit("nova_questao", { 
     numero: sala.questaoAtual + 1, 
     total: sala.questoes.length, 
-    pergunta: "Desenvolva: " + q.prompt, 
-    dica: q.hint,
-    solucao: q.solution,
+    pergunta: q.pergunta, 
+    opcoes: q.opcoes, 
     tempo: TEMPO_POR_QUESTAO 
   });
 
@@ -215,13 +130,13 @@ function iniciarProximaQuestao(pin) {
 
     if (sala.tempoRestante <= 0) {
       clearInterval(sala.timer);
-      io.to(pin).emit("fim_tempo", { correta: q.answer });
+      io.to(pin).emit("fim_tempo", { correta: q.correta });
       setTimeout(() => {
         if (salas[pin]) {
           salas[pin].questaoAtual++;
           iniciarProximaQuestao(pin);
         }
-      }, 6000);
+      }, 4000); // 4 segundos de transição (Rápido)
     }
   }, 1000);
 }
@@ -238,18 +153,11 @@ function finalizarJogo(pin) {
     if (salas[pin]) {
       sala.estado = "LOBBY";
       sala.questaoAtual = 0;
-      sala.questoes = gerar10Questoes();
+      sala.questoes = gerar10Questoes(); // Gera 10 novas
       Object.values(sala.jogadores).forEach(j => { j.pronto = false; j.pontos = 0; });
       io.to(pin).emit("atualizar_lobby", Object.values(sala.jogadores));
     }
-  }, 15000);
-}
-
-function getSalaDoJogador(socketId) {
-  for (let pin in salas) {
-    if (salas[pin].jogadores[socketId]) return salas[pin];
-  }
-  return null;
+  }, 10000);
 }
 
 io.on("connection", (socket) => {
@@ -280,48 +188,50 @@ io.on("connection", (socket) => {
   });
 
   socket.on("marcar_pronto", () => {
-    const sala = getSalaDoJogador(socket.id);
-    if (!sala) return;
+    let salaEncontrada = null;
+    for (let pin in salas) { if (salas[pin].jogadores[socket.id]) { salaEncontrada = salas[pin]; break; } }
+    if (!salaEncontrada) return;
 
-    sala.jogadores[socket.id].pronto = true;
-    io.to(sala.id).emit("atualizar_lobby", Object.values(sala.jogadores));
+    salaEncontrada.jogadores[socket.id].pronto = true;
+    io.to(salaEncontrada.id).emit("atualizar_lobby", Object.values(salaEncontrada.jogadores));
 
-    const todosJogadores = Object.values(sala.jogadores);
+    const todosJogadores = Object.values(salaEncontrada.jogadores);
     if (todosJogadores.length > 0 && todosJogadores.every(j => j.pronto)) {
-      iniciarProximaQuestao(sala.id);
+      iniciarProximaQuestao(salaEncontrada.id);
     }
   });
 
-  socket.on("enviar_resposta", (typedAnswer) => {
-    const sala = getSalaDoJogador(socket.id);
-    if (!sala || sala.estado !== "JOGANDO") return;
+  // O Servidor antigo e rápido: Só confere o Índice clicado (0 a 4)
+  socket.on("enviar_resposta", (indiceEscolhido) => {
+    let salaEncontrada = null;
+    for (let pin in salas) { if (salas[pin].jogadores[socket.id]) { salaEncontrada = salas[pin]; break; } }
+    if (!salaEncontrada || salaEncontrada.estado !== "JOGANDO") return;
 
-    const jogador = sala.jogadores[socket.id];
+    const jogador = salaEncontrada.jogadores[socket.id];
     if (jogador.respondeu) return;
 
     jogador.respondeu = true;
-    const questaoCerta = sala.questoes[sala.questaoAtual].answer;
+    const questaoCerta = salaEncontrada.questoes[salaEncontrada.questaoAtual].correta;
 
-    // Se a resposta digitada for matematicamente igual à esperada
-    if (answerIsCorrect(typedAnswer, questaoCerta)) {
-      const multiplicador = sala.tempoRestante / TEMPO_POR_QUESTAO;
-      const pontosGanhos = 500 + Math.floor(500 * multiplicador);
-      jogador.pontos += pontosGanhos;
+    if (indiceEscolhido === questaoCerta) {
+      const multiplicador = salaEncontrada.tempoRestante / TEMPO_POR_QUESTAO;
+      jogador.pontos += 500 + Math.floor(500 * multiplicador);
     }
 
-    const todosResponderam = Object.values(sala.jogadores).every(j => j.respondeu);
+    const todosResponderam = Object.values(salaEncontrada.jogadores).every(j => j.respondeu);
     if (todosResponderam) {
-      clearInterval(sala.timer);
-      io.to(sala.id).emit("fim_tempo", { correta: questaoCerta });
+      clearInterval(salaEncontrada.timer);
+      io.to(salaEncontrada.id).emit("fim_tempo", { correta: questaoCerta });
       setTimeout(() => {
-        sala.questaoAtual++;
-        iniciarProximaQuestao(sala.id);
-      }, 6000);
+        salaEncontrada.questaoAtual++;
+        iniciarProximaQuestao(salaEncontrada.id);
+      }, 4000);
     }
   });
 
   socket.on("sair_sala", () => {
-    const sala = getSalaDoJogador(socket.id);
+    let sala = null;
+    for (let pin in salas) { if (salas[pin].jogadores[socket.id]) { sala = salas[pin]; break; } }
     if (sala) {
       delete sala.jogadores[socket.id];
       socket.leave(sala.id);
@@ -331,7 +241,8 @@ io.on("connection", (socket) => {
   });
 
   socket.on("disconnect", () => {
-    const sala = getSalaDoJogador(socket.id);
+    let sala = null;
+    for (let pin in salas) { if (salas[pin].jogadores[socket.id]) { sala = salas[pin]; break; } }
     if (sala) {
       delete sala.jogadores[socket.id];
       io.to(sala.id).emit("atualizar_lobby", Object.values(sala.jogadores));
@@ -344,4 +255,4 @@ io.on("connection", (socket) => {
 });
 
 const PORT = process.env.PORT || 3000;
-server.listen(PORT, () => console.log(`Servidor rodando na porta ${PORT} 🚀`));
+server.listen(PORT, () => console.log(`Servidor Multi rodando rápido na porta ${PORT} 🚀`));
