@@ -74,7 +74,6 @@ function gerarQuestao() {
     erradas = [`x² + ${n * n}`, `x² - ${2 * n}x - ${n * n}`, `x² - ${n}`, `x² + ${2 * n}x + ${n * n}`];
   }
 
-  // Embaralha as opções
   let opcoes = [certa, ...erradas];
   opcoes.sort(() => Math.random() - 0.5);
   let correta = opcoes.indexOf(certa);
@@ -89,7 +88,7 @@ function gerar10Questoes() {
 }
 
 // ==========================================
-// SISTEMA DE SALAS (LISO E RÁPIDO COMO O ORIGINAL)
+// SISTEMA DE SALAS (LISO, RÁPIDO E ANTI-TRAVAMENTO)
 // ==========================================
 const TEMPO_POR_QUESTAO = 150;
 const salas = {};
@@ -98,11 +97,38 @@ function gerarPin() {
   return Math.floor(1000 + Math.random() * 9000).toString();
 }
 
+// NOVA FUNÇÃO: Checa de forma inteligente se a questão deve acabar
+function checarFimDeQuestao(sala) {
+  if (sala.bloqueada) return; // Se a sala já fechou a questão, ignora
+  
+  const jogadores = Object.values(sala.jogadores);
+  if (jogadores.length === 0) return; // Ninguém na sala
+  
+  // Verifica se todos os que AINDA ESTÃO CONECTADOS responderam
+  const todosResponderam = jogadores.every(j => j.respondeu);
+  
+  if (todosResponderam || sala.tempoRestante <= 0) {
+    sala.bloqueada = true; // Trava a sala pra não rodar duas vezes
+    clearInterval(sala.timer);
+    
+    const questaoCerta = sala.questoes[sala.questaoAtual].correta;
+    io.to(sala.id).emit("fim_tempo", { correta: questaoCerta });
+    
+    setTimeout(() => {
+      if (salas[sala.id]) {
+        salas[sala.id].questaoAtual++;
+        iniciarProximaQuestao(sala.id);
+      }
+    }, 4000); // 4 segundos de transição pra ver quem errou/acertou
+  }
+}
+
 function iniciarProximaQuestao(pin) {
   const sala = salas[pin];
   if (!sala) return;
 
   if (sala.timer) clearInterval(sala.timer);
+  sala.bloqueada = false;
 
   if (sala.questaoAtual >= sala.questoes.length) {
     finalizarJogo(pin);
@@ -115,7 +141,6 @@ function iniciarProximaQuestao(pin) {
 
   const q = sala.questoes[sala.questaoAtual];
   
-  // Manda para o HTML as opções (A, B, C, D, E) e o total (10)
   io.to(pin).emit("nova_questao", { 
     numero: sala.questaoAtual + 1, 
     total: sala.questoes.length, 
@@ -129,14 +154,7 @@ function iniciarProximaQuestao(pin) {
     io.to(pin).emit("tempo_atualizado", sala.tempoRestante);
 
     if (sala.tempoRestante <= 0) {
-      clearInterval(sala.timer);
-      io.to(pin).emit("fim_tempo", { correta: q.correta });
-      setTimeout(() => {
-        if (salas[pin]) {
-          salas[pin].questaoAtual++;
-          iniciarProximaQuestao(pin);
-        }
-      }, 4000); // 4 segundos de transição (Rápido)
+      checarFimDeQuestao(sala);
     }
   }, 1000);
 }
@@ -153,7 +171,7 @@ function finalizarJogo(pin) {
     if (salas[pin]) {
       sala.estado = "LOBBY";
       sala.questaoAtual = 0;
-      sala.questoes = gerar10Questoes(); // Gera 10 novas
+      sala.questoes = gerar10Questoes(); 
       Object.values(sala.jogadores).forEach(j => { j.pronto = false; j.pontos = 0; });
       io.to(pin).emit("atualizar_lobby", Object.values(sala.jogadores));
     }
@@ -165,7 +183,7 @@ io.on("connection", (socket) => {
     let pin = gerarPin();
     while (salas[pin]) pin = gerarPin();
     
-    salas[pin] = { id: pin, estado: "LOBBY", questaoAtual: 0, tempoRestante: 0, timer: null, jogadores: {}, questoes: gerar10Questoes() };
+    salas[pin] = { id: pin, estado: "LOBBY", questaoAtual: 0, tempoRestante: 0, timer: null, bloqueada: false, jogadores: {}, questoes: gerar10Questoes() };
     socket.join(pin);
     salas[pin].jogadores[socket.id] = { id: socket.id, username: dados.username, personagem: dados.personagem, pontos: 0, pronto: false, respondeu: false };
     
@@ -201,7 +219,6 @@ io.on("connection", (socket) => {
     }
   });
 
-  // O Servidor antigo e rápido: Só confere o Índice clicado (0 a 4)
   socket.on("enviar_resposta", (indiceEscolhido) => {
     let salaEncontrada = null;
     for (let pin in salas) { if (salas[pin].jogadores[socket.id]) { salaEncontrada = salas[pin]; break; } }
@@ -218,15 +235,8 @@ io.on("connection", (socket) => {
       jogador.pontos += 500 + Math.floor(500 * multiplicador);
     }
 
-    const todosResponderam = Object.values(salaEncontrada.jogadores).every(j => j.respondeu);
-    if (todosResponderam) {
-      clearInterval(salaEncontrada.timer);
-      io.to(salaEncontrada.id).emit("fim_tempo", { correta: questaoCerta });
-      setTimeout(() => {
-        salaEncontrada.questaoAtual++;
-        iniciarProximaQuestao(salaEncontrada.id);
-      }, 4000);
-    }
+    // Chama o fiscal pra ver se a questão já pode acabar
+    checarFimDeQuestao(salaEncontrada);
   });
 
   socket.on("sair_sala", () => {
@@ -236,7 +246,14 @@ io.on("connection", (socket) => {
       delete sala.jogadores[socket.id];
       socket.leave(sala.id);
       io.to(sala.id).emit("atualizar_lobby", Object.values(sala.jogadores));
-      if (Object.keys(sala.jogadores).length === 0) delete salas[sala.id];
+      
+      if (Object.keys(sala.jogadores).length === 0) {
+        if(sala.timer) clearInterval(sala.timer);
+        delete salas[sala.id];
+      } else if (sala.estado === "JOGANDO") {
+        // Se alguém clicar no botão de sair, checa se a questão não deveria acabar!
+        checarFimDeQuestao(sala);
+      }
     }
   });
 
@@ -246,13 +263,17 @@ io.on("connection", (socket) => {
     if (sala) {
       delete sala.jogadores[socket.id];
       io.to(sala.id).emit("atualizar_lobby", Object.values(sala.jogadores));
+      
       if (Object.keys(sala.jogadores).length === 0) {
         if(sala.timer) clearInterval(sala.timer);
         delete salas[sala.id];
+      } else if (sala.estado === "JOGANDO") {
+        // O SEGREDO AQUI: Se a tela apagar e o cara cair da sala, o servidor libera a partida pra quem ficou na mesma hora!
+        checarFimDeQuestao(sala);
       }
     }
   });
 });
 
 const PORT = process.env.PORT || 3000;
-server.listen(PORT, () => console.log(`Servidor Multi rodando rápido na porta ${PORT} 🚀`));
+server.listen(PORT, () => console.log(`Servidor Multi Anti-Travamento na porta ${PORT} 🚀`));
