@@ -137,7 +137,7 @@ function answerIsCorrect(input, expected) {
 }
 
 // ==========================================
-// SISTEMA DE SALAS
+// SISTEMA DE SALAS (COM ARMADURA ANTI-CRASH)
 // ==========================================
 const TEMPO_POR_QUESTAO = 150;
 const salas = {};
@@ -146,6 +146,9 @@ function gerarPin() { return Math.floor(1000 + Math.random() * 9000).toString();
 function iniciarProximaQuestao(pin) {
   const sala = salas[pin];
   if (!sala) return;
+
+  // Proteção: Limpa cronômetros fantasmas de questões antigas
+  if (sala.timer) clearInterval(sala.timer);
 
   if (sala.questaoAtual >= sala.questoes.length) {
     finalizarJogo(pin);
@@ -158,7 +161,6 @@ function iniciarProximaQuestao(pin) {
 
   const q = sala.questoes[sala.questaoAtual];
   
-  // MANDA O CÁLCULO, A DICA E O TOTAL DE QUESTÕES PRO HTML
   io.to(pin).emit("nova_questao", { 
     numero: sala.questaoAtual + 1, 
     total: 10, 
@@ -174,7 +176,14 @@ function iniciarProximaQuestao(pin) {
     if (sala.tempoRestante <= 0) {
       clearInterval(sala.timer);
       io.to(pin).emit("fim_tempo", { correta: q.answer });
-      setTimeout(() => { if (salas[pin]) { salas[pin].questaoAtual++; iniciarProximaQuestao(pin); } }, 6000);
+      
+      // Proteção contra crash na troca de questão
+      setTimeout(() => { 
+        if (salas[pin]) { 
+          salas[pin].questaoAtual++; 
+          iniciarProximaQuestao(pin); 
+        } 
+      }, 6000);
     }
   }, 1000);
 }
@@ -231,8 +240,11 @@ io.on("connection", (socket) => {
 
     jogador.respondeu = true;
     const questaoCerta = sala.questoes[sala.questaoAtual].answer;
+    
+    // Protege contra lixo invisível vindo do celular (espaços, nulos, etc)
+    const chuteSeguro = String(typedAnswer || "");
 
-    if (answerIsCorrect(typedAnswer, questaoCerta)) {
+    if (answerIsCorrect(chuteSeguro, questaoCerta)) {
       const multiplicador = sala.tempoRestante / TEMPO_POR_QUESTAO;
       jogador.pontos += 500 + Math.floor(500 * multiplicador);
     }
@@ -240,18 +252,40 @@ io.on("connection", (socket) => {
     if (Object.values(sala.jogadores).every(j => j.respondeu)) {
       clearInterval(sala.timer);
       io.to(sala.id).emit("fim_tempo", { correta: questaoCerta });
-      setTimeout(() => { sala.questaoAtual++; iniciarProximaQuestao(sala.id); }, 6000);
+      
+      // O VILÃO ESTAVA AQUI: A proteção anti-crash foi colocada!
+      setTimeout(() => { 
+        if (salas[sala.id]) {
+          salas[sala.id].questaoAtual++; 
+          iniciarProximaQuestao(sala.id); 
+        }
+      }, 6000);
     }
   });
 
   socket.on("sair_sala", () => {
     const sala = Object.values(salas).find(s => s.jogadores[socket.id]);
-    if (sala) { delete sala.jogadores[socket.id]; socket.leave(sala.id); io.to(sala.id).emit("atualizar_lobby", Object.values(sala.jogadores)); if (Object.keys(sala.jogadores).length === 0) delete salas[sala.id]; }
+    if (sala) { 
+      delete sala.jogadores[socket.id]; 
+      socket.leave(sala.id); 
+      io.to(sala.id).emit("atualizar_lobby", Object.values(sala.jogadores)); 
+      if (Object.keys(sala.jogadores).length === 0) {
+        if(sala.timer) clearInterval(sala.timer);
+        delete salas[sala.id]; 
+      }
+    }
   });
 
   socket.on("disconnect", () => {
     const sala = Object.values(salas).find(s => s.jogadores[socket.id]);
-    if (sala) { delete sala.jogadores[socket.id]; io.to(sala.id).emit("atualizar_lobby", Object.values(sala.jogadores)); if (Object.keys(sala.jogadores).length === 0) { if(sala.timer) clearInterval(sala.timer); delete salas[sala.id]; } }
+    if (sala) { 
+      delete sala.jogadores[socket.id]; 
+      io.to(sala.id).emit("atualizar_lobby", Object.values(sala.jogadores)); 
+      if (Object.keys(sala.jogadores).length === 0) { 
+        if(sala.timer) clearInterval(sala.timer); 
+        delete salas[sala.id]; 
+      } 
+    }
   });
 });
 
