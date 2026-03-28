@@ -84,7 +84,7 @@ function canonical(poly) { return Object.entries(poly).filter(([,v]) => v !== 0)
 function answerIsCorrect(input, expected) { if (/^\d+$/.test(expected.trim())) return input.trim() === expected.trim(); try { return canonical(parsePolynomial(input)) === canonical(parsePolynomial(expected)); } catch { return false; } }
 
 // ==========================================
-// SISTEMA DE SALAS (COM VACINA ANTI-SONO E JOGO MAIS RÁPIDO)
+// SISTEMA DE SALAS (TURBO & ANTI-TRAVAMENTO)
 // ==========================================
 const TEMPO_POR_QUESTAO = 150; // 2 minutos e meio
 const salas = {};
@@ -95,7 +95,7 @@ function iniciarProximaQuestao(pin) {
   if (!sala) return;
 
   if (sala.timer) clearInterval(sala.timer);
-  sala.bloqueada = false;
+  sala.bloqueada = false; // Destrava a sala para permitir transição
 
   if (sala.questaoAtual >= sala.questoes.length) {
     finalizarJogo(pin);
@@ -115,13 +115,13 @@ function iniciarProximaQuestao(pin) {
     io.to(pin).emit("tempo_atualizado", sala.tempoRestante);
 
     if (sala.tempoRestante <= 0) {
-      if (sala.bloqueada) return; 
-      sala.bloqueada = true;
+      if (sala.bloqueada) return; // Se já pulou, ignora
+      sala.bloqueada = true; // Bloqueia para não pular duas vezes
       clearInterval(sala.timer);
       io.to(pin).emit("fim_tempo", { correta: q.answer });
       
-      // Jogo 2x mais rápido (3 segundos pra pular de questão)
-      setTimeout(() => { if (salas[pin]) { salas[pin].questaoAtual++; iniciarProximaQuestao(pin); } }, 3000);
+      // MODO TURBO: Espera só 2 segundos para a próxima questão
+      setTimeout(() => { if (salas[pin]) { salas[pin].questaoAtual++; iniciarProximaQuestao(pin); } }, 2000);
     }
   }, 1000);
 }
@@ -143,7 +143,7 @@ function finalizarJogo(pin) {
 
 io.on("connection", (socket) => {
   
-  // VACINA ANTI-SONO (Reconecta o celular automaticamente)
+  // RECONEXÃO FANTASMA: Se a tela apagar e voltar, ele puxa o aluno de volta pra sala!
   socket.on("reentrar_sala_silencioso", (dados) => {
     const sala = salas[dados.pin];
     if (sala) {
@@ -212,8 +212,21 @@ io.on("connection", (socket) => {
       clearInterval(sala.timer);
       io.to(sala.id).emit("fim_tempo", { correta: questaoCerta });
       
-      // Jogo 2x mais rápido (3 segundos pra pular de questão)
-      setTimeout(() => { if (salas[sala.id]) { salas[sala.id].questaoAtual++; iniciarProximaQuestao(sala.id); } }, 3000);
+      // MODO TURBO: Espera só 2 segundos para a próxima questão
+      setTimeout(() => { if (salas[sala.id]) { salas[sala.id].questaoAtual++; iniciarProximaQuestao(sala.id); } }, 2000);
+    }
+  });
+
+  socket.on("sair_sala", () => {
+    const sala = Object.values(salas).find(s => s.jogadores[socket.id]);
+    if (sala) {
+      delete sala.jogadores[socket.id];
+      socket.leave(sala.id);
+      io.to(sala.id).emit("atualizar_lobby", Object.values(sala.jogadores));
+      if (Object.keys(sala.jogadores).length === 0) {
+        if(sala.timer) clearInterval(sala.timer);
+        delete salas[sala.id];
+      }
     }
   });
 
@@ -223,8 +236,13 @@ io.on("connection", (socket) => {
       if (sala.estado === "LOBBY") {
         delete sala.jogadores[socket.id];
         io.to(sala.id).emit("atualizar_lobby", Object.values(sala.jogadores));
-        if (Object.keys(sala.jogadores).length === 0) delete salas[sala.id];
+        if (Object.keys(sala.jogadores).length === 0) {
+          if(sala.timer) clearInterval(sala.timer);
+          delete salas[sala.id];
+        }
       }
+      // Se estiver JOGANDO, o servidor NÃO DELETA o jogador. 
+      // Isso permite que a 'Reconexão Fantasma' resgate ele se o celular acordar!
     }
   });
 });
