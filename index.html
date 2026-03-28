@@ -55,8 +55,6 @@
     .character-card.selected { border-color: var(--seduc-blue); transform: scale(1.02); }
     .character-card img { width: 100%; aspect-ratio: 1 / 1; object-fit: contain; border-radius: 16px; background: #f8fbff; border: 1px solid var(--line); }
     .character-card span { display: block; margin-top: 6px; font-size: .72rem; font-weight: 800; }
-    
-    /* Estilos Solo */
     .game-shell { display: grid; gap: 12px; padding-bottom: 92px; }
     .game-header { padding: 16px; display: flex; align-items: center; justify-content: space-between; gap: 12px; }
     .pill { display: inline-flex; align-items: center; gap: 6px; padding: 8px 10px; border-radius: 999px; background: #f8fbff; border: 1px solid var(--line); color: var(--seduc-blue); font-weight: 800; font-size: .86rem; }
@@ -69,8 +67,6 @@
     .toolbar-row { display: grid; grid-template-columns: repeat(4, 1fr); gap: 8px; }
     .small-btn { border: 1px solid var(--line); background: #fff; border-radius: 14px; padding: 12px 8px; font-size: .85rem; font-weight: 800; color: var(--text); cursor: pointer; }
     .hint-box, .solution-box { padding: 14px; border-radius: 18px; border: 1px solid var(--line); background: #fff; box-shadow: var(--shadow); margin-top: 10px;}
-    
-    /* Multiplayer */
     .lobby-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; }
     .lobby-player { display: flex; flex-direction: column; align-items: center; text-align: center; padding: 10px; background: #f8fbff; border: 1px solid var(--line); border-radius: 16px; }
     .lobby-player img { width: 50px; height: 50px; border-radius: 12px; margin-bottom: 8px; }
@@ -236,7 +232,6 @@
 
       const $ = (id) => document.getElementById(id); const $$ = (sel) => [...document.querySelectorAll(sel)];
 
-      // 15 PERSONAGENS
       const characters = [ { id: "einstein", name: "Einstein" }, { id: "neymar", name: "Neymar" }, { id: "messi", name: "Messi" }, { id: "cr7", name: "CR7" }, { id: "tesla", name: "Tesla" }, { id: "taylor", name: "Taylor" }, { id: "eilish", name: "Eilish" }, { id: "anitta", name: "Anitta" }, { id: "braga", name: "Braga" }, { id: "pericles", name: "Péricles" }, { id: "alok", name: "Alok" }, { id: "sandler", name: "Sandler" }, { id: "will", name: "Will" }, { id: "luthor", name: "Luthor" }, { id: "mitski", name: "Mitski" } ];
       const ASSET_ROOT = "assets/personagens"; const FALLBACK_IMAGE = ASSET_ROOT + "/einstein/base.png";
       const state = { player: { name: "", characterId: "einstein", imagePath: FALLBACK_IMAGE }, currentScreen: "screenLogin", voiceEnabled: true, allowTimer: true, timerSeconds: 0, timerInterval: null, current: null, score: 0, bestScore: 0, correct: 0, wrong: 0, streak: 0, xp: 0, level: 1, totalRounds: 0, mpRespondido: false, codigoSalaAtual: null };
@@ -247,13 +242,14 @@
       function renderCharacterGrid() { const grid = $("characterGrid"); if (!grid) return; grid.innerHTML = characters.map(c => `<div class="character-card ${c.id === state.player.characterId ? 'selected' : ''}" data-id="${c.id}"><img src="${getCharacterImagePath(c.id)}" onerror="this.src='${FALLBACK_IMAGE}'"><span>${c.name}</span></div>`).join(""); $$(".character-card").forEach(card => { card.addEventListener("click", () => { state.player.characterId = card.dataset.id; renderCharacterGrid(); }); }); }
       function checkAutoLogin() { const savedUser = localStorage.getItem("notaveis_user"); const savedChar = localStorage.getItem("notaveis_char"); if (savedUser && savedChar) { state.player.name = savedUser; state.player.characterId = savedChar; if($("homeName")) $("homeName").textContent = savedUser; if($("homeAvatarImg")) $("homeAvatarImg").src = getCharacterImagePath(savedChar); if($("profileAvatarImg")) $("profileAvatarImg").src = getCharacterImagePath(savedChar); if($("profileName")) $("profileName").textContent = savedUser; showScreen("screenHome"); } else { showScreen("screenLogin"); } }
 
+      // VOZ (LÊ MATEMÁTICA)
       function speak(text) {
         if (!state.voiceEnabled || !("speechSynthesis" in window)) return; window.speechSynthesis.cancel();
         let textoFalado = text.replace(/-/g, " menos ").replace(/−/g, " menos ").replace(/\(/g, " abre parênteses, ").replace(/\)/g, " fecha parênteses, ").replace(/²/g, " ao quadrado ").replace(/\+/g, " mais ").replace(/x/gi, " xis ").replace(/=/g, " igual a ");
         const u = new SpeechSynthesisUtterance(textoFalado); u.lang = "pt-BR"; u.rate = 0.9; window.speechSynthesis.speak(u);
       }
 
-      // MOTOR MATEMÁTICO CLIENTE (Para o Solo)
+      // MOTOR MATEMÁTICO CLIENTE (Para o Treino Solo)
       function randInt(min, max) { return Math.floor(Math.random() * (max - min + 1)) + min; } function choice(arr) { return arr[randInt(0, arr.length - 1)]; } function sup(str) { return str.replace(/\^2/g, "²"); }
       function limparResposta(texto) { if (!texto) return ""; return texto.toLowerCase().replace(/\s+/g, "").replace(/\^2/g, "²").replace(/x2/g, "x²").replace(/−/g, "-"); }
       window.answerIsCorrect = function(input, expected) { return limparResposta(input) === limparResposta(expected); }
@@ -269,10 +265,18 @@
       function checkAnswerSolo() { if (!state.current) return; const input = $("answerInput").value.trim(); if (!input) { if($("feedback")) { $("feedback").className = "message error"; $("feedback").textContent = "Digite uma resposta primeiro."; } return; } const ok = window.answerIsCorrect(input, state.current.answer); if (ok) { state.correct++; state.streak++; state.score += 10 + state.streak * 2; state.xp += 15; if($("feedback")) { $("feedback").className = "message ok"; $("feedback").textContent = "Boa! Resposta correta: " + state.current.answer; } speak("Resposta correta"); salvarPontos(state.player.name, 10); } else { state.wrong++; state.streak = 0; state.score = Math.max(0, state.score - 3); state.xp += 4; if($("feedback")) { $("feedback").className = "message error"; $("feedback").textContent = "Quase. Correta: " + state.current.answer; } speak("Resposta incorreta"); } updateStatsSolo(); }
       function startTimer() { if (!state.allowTimer || state.timerInterval) return; state.timerInterval = setInterval(() => { state.timerSeconds++; const m = String(Math.floor(state.timerSeconds / 60)).padStart(2, "0"); const s = String(state.timerSeconds % 60).padStart(2, "0"); if($("gameTimer")) $("gameTimer").textContent = m + ":" + s; }, 1000); }
 
-      // ================== MULTIPLAYER (ORIGINAL RÁPIDO) ==================
+      // ================== MULTIPLAYER (VACINADO) ==================
       function conectarSocket() {
         if (!socket) {
-          socket = io(API); // Conexão rápida original
+          // Conexão rápida natural
+          socket = io(API);
+          
+          // VACINA: Se o celular piscar a tela, reconecta e puxa a questão onde parou!
+          socket.on("connect", () => {
+            if (state.codigoSalaAtual && state.player.name) {
+              socket.emit("reentrar_sala_silencioso", { pin: state.codigoSalaAtual, username: state.player.name, personagem: state.player.characterId });
+            }
+          });
           
           socket.on("sala_entrou", (pin) => { 
             state.codigoSalaAtual = pin; 
@@ -287,7 +291,7 @@
             $("listaJogadores").innerHTML = jogadores.map(j => `<div class="lobby-player ${j.pronto ? 'pronto' : ''}"><img src="${getCharacterImagePath(j.personagem)}"><strong>${j.username}</strong><small>${j.pronto ? 'Pronto ✅' : 'Aguardando...'}</small></div>`).join(""); 
           });
 
-          // RECEBENDO A QUESTÃO COM OPÇÕES A, B, C, D, E
+          // CARREGA A QUESTÃO E OS BOTÕES A,B,C,D,E
           socket.on("nova_questao", (dados) => {
             state.mpRespondido = false;
             
@@ -304,7 +308,6 @@
             
             speak(dados.pergunta);
 
-            // Cria os botões das alternativas
             const letras = ['A', 'B', 'C', 'D', 'E'];
             $("quizOpcoesBox").innerHTML = dados.opcoes.map((op, i) => `
               <button class="quiz-option" onclick="enviarRespostaMP(${i}, this)">
